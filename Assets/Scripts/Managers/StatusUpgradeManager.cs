@@ -7,7 +7,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.EventSystems;
 
-public enum StatusType { ATK, HP, DEF, CRIT_CH, CRIT_DMG }
+public enum StatusType { ATK, HP, DEF, CRIT_CH, CRIT_DMG, ATK_SPEED }
 
 [Serializable]
 class UpgradeData
@@ -128,6 +128,7 @@ public class StatusUpgradeManager : MonoBehaviour
     public static event Action<StatusType, int> OnAttackUpgrade;
     public static event Action<StatusType, int> OnHealthUpgrade;
     public static event Action<StatusType, int> OnDefenseUpgrade;
+    public static event Action<StatusType, int> OnAttackSpeedUpgrade;
     public static event Action<StatusType, float> OnCritChanceUpgrade;
     public static event Action<StatusType, float> OnCritDamageUpgrade;
 
@@ -155,6 +156,13 @@ public class StatusUpgradeManager : MonoBehaviour
     [SerializeField] int defenseincrease = 2;
     [SerializeField] int defenseFirstPrice = 120;
     [SerializeField] int defensepricePercent = 12;
+
+    [Header("[공격 속도]")]
+    [Header("[초기 값, 증가량, 초기 비용, 증가율]")]
+    [SerializeField] int attackSpeedFirstValue = 5;
+    [SerializeField] int attackSpeedincrease = 2;
+    [SerializeField] int attackSpeedFirstPrice = 120;
+    [SerializeField] int attackSpeedpricePercent = 12;
 
     [Header("[크리티컬 확률]")]
     [Header("[초기 값, 증가량, 초기 비용, 증가율]")]
@@ -191,6 +199,12 @@ public class StatusUpgradeManager : MonoBehaviour
     [SerializeField] TMP_Text defenseUpgradePriceText;
     [SerializeField] EventTrigger defenseUpgradeBtn;
 
+    [Header("[방어력]")]
+    [SerializeField] TMP_Text attackSpeedUpgradeLevelText;
+    [SerializeField] TMP_Text attackSpeedUpgradeValueText;
+    [SerializeField] TMP_Text attackSpeedUpgradePriceText;
+    [SerializeField] EventTrigger attackSpeedUpgradeBtn;
+
     [Header("[치명타 확률]")]
     [SerializeField] TMP_Text critChanceUpgradeLevelText;
     [SerializeField] TMP_Text critChanceUpgradeValueText;
@@ -208,6 +222,7 @@ public class StatusUpgradeManager : MonoBehaviour
     UpgradeData attackUpgradeData;
     UpgradeData healthUpgradeData;
     UpgradeData defenseUpgradeData;
+    UpgradeData attackSpeedUpgradeData;
     UpgradeData critChanceUpgradeData;
     UpgradeData critDamageUpgradeData;
 
@@ -232,6 +247,7 @@ public class StatusUpgradeManager : MonoBehaviour
         CreateEventTriggerInstances(attackUpgradeBtn, attackUpgradeData);
         CreateEventTriggerInstances(healthUpgradeBtn, healthUpgradeData);
         CreateEventTriggerInstances(defenseUpgradeBtn, defenseUpgradeData);
+        CreateEventTriggerInstances(attackSpeedUpgradeBtn, attackSpeedUpgradeData);
         CreateEventTriggerInstances(critChanceUpgradeBtn, critChanceUpgradeData);
         CreateEventTriggerInstances(critDamageUpgradeBtn, critDamageUpgradeData);
     }
@@ -283,6 +299,18 @@ public class StatusUpgradeManager : MonoBehaviour
             upgradeValueText: defenseUpgradeValueText,
             upgradePriceText: defenseUpgradePriceText,
             upgradeBtn: defenseUpgradeBtn);
+        attackSpeedUpgradeData = new UpgradeData(
+            StatusType.ATK_SPEED,
+            ES3.Load<int>($"{StatusType.ATK_SPEED}UpgradeLevel", 0),
+            attackSpeedFirstPrice,
+            attackSpeedpricePercent,
+            increase: attackSpeedincrease,
+            upgradeValue: attackSpeedFirstValue,
+            OnStatusUpgrade: OnAttackSpeedUpgrade,
+            upgradeLevelText: attackSpeedUpgradeLevelText,
+            upgradeValueText: attackSpeedUpgradeValueText,
+            upgradePriceText: attackSpeedUpgradePriceText,
+            upgradeBtn: attackSpeedUpgradeBtn);
         critChanceUpgradeData = new UpgradeData(
             StatusType.CRIT_CH,
             ES3.Load<int>($"{StatusType.CRIT_CH}UpgradeLevel", 0),
@@ -328,6 +356,9 @@ public class StatusUpgradeManager : MonoBehaviour
             case StatusType.DEF:
                 defenseUpgradeData.SetUpgradeUI();
                 break;
+            case StatusType.ATK_SPEED:
+                attackSpeedUpgradeData.SetUpgradeUI();
+                break;
             case StatusType.CRIT_CH:
                 critChanceUpgradeData.SetUpgradeUI();
                 break;
@@ -343,6 +374,7 @@ public class StatusUpgradeManager : MonoBehaviour
         attackUpgradeData.SetUpgradeUI();
         healthUpgradeData.SetUpgradeUI();
         defenseUpgradeData.SetUpgradeUI();
+        attackSpeedUpgradeData.SetUpgradeUI();
         critChanceUpgradeData.SetUpgradeUI();
         critDamageUpgradeData.SetUpgradeUI();
     }

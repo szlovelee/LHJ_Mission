@@ -22,6 +22,8 @@ public class Player : MonoBehaviour
     private BigInteger currentHealth;
     [SerializeField][Header("총 방어력")]
     private BigInteger currentDefense;
+    [SerializeField][Header("총 공격 속도")]
+    private BigInteger currentAttackSpeed;
     [SerializeField][Header("총 크리티컬 확률")]
     private BigInteger currentCritChance;
     [SerializeField][Header("총 크리티컬 데미지")]
@@ -48,6 +50,7 @@ public class Player : MonoBehaviour
         StatusUpgradeManager.OnAttackUpgrade += status.IncreaseBaseStat;
         StatusUpgradeManager.OnHealthUpgrade += status.IncreaseBaseStat;
         StatusUpgradeManager.OnDefenseUpgrade += status.IncreaseBaseStat;
+        StatusUpgradeManager.OnAttackSpeedUpgrade += status.IncreaseBaseStat;
         StatusUpgradeManager.OnCritChanceUpgrade += status.IncreaseBaseStat;
         StatusUpgradeManager.OnCritDamageUpgrade += status.IncreaseBaseStat;
 
@@ -67,6 +70,8 @@ public class Player : MonoBehaviour
                 return currentHealth;
             case StatusType.DEF:
                 return currentDefense;
+            case StatusType.ATK_SPEED:
+                return currentAttackSpeed;
             case StatusType.CRIT_CH:
                 return currentCritChance;
             case StatusType.CRIT_DMG:
@@ -89,6 +94,9 @@ public class Player : MonoBehaviour
                 break;
             case StatusType.DEF:
                 currentDefense = statusValue;
+                break;
+            case StatusType.ATK_SPEED:
+                currentAttackSpeed = statusValue;
                 break;
             case StatusType.CRIT_CH:
                 currentCritChance = statusValue;
