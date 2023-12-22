@@ -14,7 +14,11 @@ public class EquipmentUI : MonoBehaviour
 
     public static EquipmentUI instance;
 
-    [SerializeField] Equipment selectEquipment;
+    [SerializeField] Button[] equipmentTabs;
+    [SerializeField] GameObject[] equipmentViews;
+
+    [SerializeField] Equipment[] selectEquipments;
+    private Equipment selectEquipment;
     [SerializeField] TMP_Text selectEquipmentName;
     [SerializeField] TMP_Text selectEquipment_equippedEffect;
     [SerializeField] TMP_Text selectEquipment_ownedEffect;
@@ -44,6 +48,9 @@ public class EquipmentUI : MonoBehaviour
 
     private void Start()
     {
+        Debug.Assert(equipmentTabs != null, "NULL : EQUIPMENT TABS");
+        Debug.Assert(equipmentViews != null, "NULL : EQUIPMENT VIEWS");
+
         //SetupEventListeners();
         InitializeButtonListeners();
 
@@ -65,6 +72,12 @@ public class EquipmentUI : MonoBehaviour
     // 버튼 클릭 리스너 설정하는 메서드 
     void InitializeButtonListeners()
     {
+        for (int i = 0; i < equipmentTabs.Length; i++)
+        {
+            int currentIndex = i;
+            equipmentTabs[i].onClick.AddListener(() => SetEquipementTab((EquipmentType)currentIndex));
+        }
+
         equipBtn.onClick.AddListener(OnClickEquip);
         unEquipBtn.onClick.AddListener(OnClickUnEquip);
         enhancePnaelBtn.onClick.AddListener(OnClickEnhancePanel);
@@ -84,10 +97,16 @@ public class EquipmentUI : MonoBehaviour
     // 장비 클릭 했을 때 불리는 메서드
     public void SelectEquipment(Equipment equipment)
     {
-        switch (selectEquipment.type)
+        switch (equipment.type)
         {
             case EquipmentType.Weapon:
+                selectEquipment = selectEquipments[0];
                 selectEquipment.GetComponent<WeaponInfo>().SetWeaponInfo(equipment.GetComponent<WeaponInfo>());
+                UpdateSelectedEquipmentUI(selectEquipment);
+                break;
+            case EquipmentType.Armor:
+                selectEquipment = selectEquipments[1];
+                selectEquipment.GetComponent<ArmorInfo>().SetArmorInfo(equipment.GetComponent<ArmorInfo>());
                 UpdateSelectedEquipmentUI(selectEquipment);
                 break;
         }
@@ -97,8 +116,7 @@ public class EquipmentUI : MonoBehaviour
     private void UpdateSelectedEquipmentUI(Equipment equipment)
     {
         equipment.SetQuantityUI();
-
-        selectEquipment.GetComponent<WeaponInfo>().SetUI();
+        selectEquipment.GetComponent<Equipment>().SetUI();
         SetOnEquippedBtnUI(selectEquipment.OnEquipped);
 
         SetselectEquipmentTextUI(equipment);
@@ -219,5 +237,20 @@ public class EquipmentUI : MonoBehaviour
     public void UpdateSelectEquipmentData()
     {
         EquipmentManager.SetEquipment(selectEquipment.name, selectEquipment);
+    }
+
+    public void SetEquipementTab(EquipmentType type)
+    {
+        for (int i = 0; i < equipmentViews.Length; i++)
+        {
+            if (i == (int)type)
+            {
+                equipmentViews[i].SetActive(true);
+            }
+            else
+            {
+                equipmentViews[i].SetActive(false);
+            }
+        }
     }
 }
