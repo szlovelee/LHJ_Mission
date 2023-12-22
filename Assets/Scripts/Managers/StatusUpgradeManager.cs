@@ -5,11 +5,12 @@ using Keiwando.BigInteger;
 using UnityEngine.UI;
 using UnityEngine;
 using TMPro;
+using UnityEngine.EventSystems;
 
 public enum StatusType { ATK, HP, DEF, CRIT_CH, CRIT_DMG }
 
 [Serializable]
-struct UpgradeData
+class UpgradeData
 {
     public StatusType statusType;
 
@@ -28,7 +29,7 @@ struct UpgradeData
     public TMP_Text upgradeLevelText;
     public TMP_Text upgradeValueText;
     public TMP_Text upgradePriceText;
-    public Button upgradeBtn;
+    public EventTrigger upgradeBtn;
 
     // 스텟 UI 업데이트 하는 메서드
     public void SetUpgradeUI()
@@ -90,7 +91,7 @@ struct UpgradeData
 
 
     public UpgradeData(StatusType statusType, int upgradeLevel, BigInteger upgradePrice, int pricePercent,
-        TMP_Text upgradeLevelText, TMP_Text upgradeValueText, TMP_Text upgradePriceText, Button upgradeBtn,
+        TMP_Text upgradeLevelText, TMP_Text upgradeValueText, TMP_Text upgradePriceText, EventTrigger upgradeBtn,
         int increase = 0, BigInteger upgradeValue = null, Action<StatusType,int> OnStatusUpgrade = null, float critIncrease = 0, float critUpgradeValue = 0, Action<StatusType,float> OnCritStatusUpgrade = null)
     {
         this.statusType = statusType;
@@ -124,11 +125,11 @@ struct UpgradeData
 
 public class StatusUpgradeManager : MonoBehaviour
 {
-    public static event Action<StatusType,int> OnAttackUpgrade;
+    public static event Action<StatusType, int> OnAttackUpgrade;
     public static event Action<StatusType, int> OnHealthUpgrade;
-    public static event Action<StatusType,int> OnDefenseUpgrade;
-    public static event Action<StatusType,float> OnCritChanceUpgrade;
-    public static event Action<StatusType,float> OnCritDamageUpgrade;
+    public static event Action<StatusType, int> OnDefenseUpgrade;
+    public static event Action<StatusType, float> OnCritChanceUpgrade;
+    public static event Action<StatusType, float> OnCritDamageUpgrade;
 
     public static StatusUpgradeManager instance;
 
@@ -176,31 +177,31 @@ public class StatusUpgradeManager : MonoBehaviour
     [SerializeField] TMP_Text attackUpgradeLevelText;
     [SerializeField] TMP_Text attackUpgradeValueText;
     [SerializeField] TMP_Text attackUpgradePriceText;
-    [SerializeField] Button attackUpgradeBtn;
+    [SerializeField] EventTrigger attackUpgradeBtn;
 
     [Header("[체력]")]
     [SerializeField] TMP_Text healthUpgradeLevelText;
     [SerializeField] TMP_Text healthUpgradeValueText;
     [SerializeField] TMP_Text healthUpgradePriceText;
-    [SerializeField] Button healthUpgradeBtn;
+    [SerializeField] EventTrigger healthUpgradeBtn;
 
     [Header("[방어력]")]
     [SerializeField] TMP_Text defenseUpgradeLevelText;
     [SerializeField] TMP_Text defenseUpgradeValueText;
     [SerializeField] TMP_Text defenseUpgradePriceText;
-    [SerializeField] Button defenseUpgradeBtn;
+    [SerializeField] EventTrigger defenseUpgradeBtn;
 
     [Header("[치명타 확률]")]
     [SerializeField] TMP_Text critChanceUpgradeLevelText;
     [SerializeField] TMP_Text critChanceUpgradeValueText;
     [SerializeField] TMP_Text critChanceUpgradePriceText;
-    [SerializeField] Button critChanceUpgradeBtn;
+    [SerializeField] EventTrigger critChanceUpgradeBtn;
 
     [Header("[치명타 데미지]")]
     [SerializeField] TMP_Text critDamageUpgradeLevelText;
     [SerializeField] TMP_Text critDamageUpgradeValueText;
     [SerializeField] TMP_Text critDamageUpgradePriceText;
-    [SerializeField] Button critDamageUpgradeBtn;
+    [SerializeField] EventTrigger critDamageUpgradeBtn;
 
 
 
@@ -210,6 +211,8 @@ public class StatusUpgradeManager : MonoBehaviour
     UpgradeData critChanceUpgradeData;
     UpgradeData critDamageUpgradeData;
 
+    Dictionary<UpgradeData, Coroutine> continuousUpgradeCoroutine = new Dictionary<UpgradeData, Coroutine>();
+
     private void Awake()
     {
         instance = this;
@@ -218,19 +221,38 @@ public class StatusUpgradeManager : MonoBehaviour
     // 이벤트 설정하는 메서드
     public void InitStatusUpgradeManager()
     {
-        InitializeButtonListeners();
         InitializeUpgradeData();
+        InitializeButtonListeners();
         SetUpgradeUI_ALL();
     }
 
     // 버튼 초기화 메서드
     void InitializeButtonListeners()
     {
-        attackUpgradeBtn.onClick.AddListener(UpgradeAttack);
-        healthUpgradeBtn.onClick.AddListener(UpgradeHealth);
-        defenseUpgradeBtn.onClick.AddListener(UpgradeDefense);
-        critChanceUpgradeBtn.onClick.AddListener(UpgradeCritChance);
-        critDamageUpgradeBtn.onClick.AddListener(UpgradeCritDamage);
+        CreateEventTriggerInstance(attackUpgradeBtn, attackUpgradeData);
+        CreateEventTriggerInstance(healthUpgradeBtn, healthUpgradeData);
+        CreateEventTriggerInstance(defenseUpgradeBtn, defenseUpgradeData);
+        CreateEventTriggerInstance(critChanceUpgradeBtn, critChanceUpgradeData);
+        CreateEventTriggerInstance(critDamageUpgradeBtn, critDamageUpgradeData);
+    }
+
+    void CreateEventTriggerInstance(EventTrigger trigger, UpgradeData stat)
+    {
+        EventTrigger.Entry pointerClickEntry = new EventTrigger.Entry();
+        pointerClickEntry.eventID = EventTriggerType.PointerClick;
+        pointerClickEntry.callback.AddListener((eventData) => UpgradeStat(stat));
+
+        EventTrigger.Entry pointerDownEntry = new EventTrigger.Entry();
+        pointerDownEntry.eventID = EventTriggerType.PointerDown;
+        pointerDownEntry.callback.AddListener((eventData) => OnUpgradeButtonDown(stat));
+
+        EventTrigger.Entry pointerUpEntry = new EventTrigger.Entry();
+        pointerUpEntry.eventID = EventTriggerType.PointerUp;
+        pointerUpEntry.callback.AddListener((eventData) => OnUpgradeButtonUp(stat));
+
+        trigger.triggers.Add(pointerClickEntry);
+        trigger.triggers.Add(pointerDownEntry);
+        trigger.triggers.Add(pointerUpEntry);
     }
 
     // UpdateData 초기화 메서드 - 여기서 스텟퍼센트 조정 가능
@@ -337,47 +359,44 @@ public class StatusUpgradeManager : MonoBehaviour
         critDamageUpgradeData.SetUpgradeUI();
     }
 
-
-
-
-    // 버튼 눌렸을 때 동작하는 메서드
-    public void UpgradeAttack()
+    // 버튼이 눌렸을 때 동작하는 메서드
+    private void UpgradeStat(UpgradeData stat)
     {
-        if (!CurrencyManager.instance.SubtractCurrency("Gold", attackUpgradeData.upgradePrice)) return;
+        if (!CurrencyManager.instance.SubtractCurrency("Gold", stat.upgradePrice)) return;
 
-        attackUpgradeData.StatusUpdate();
-        SetUpgradeUI(attackUpgradeData);
+        if (stat.statusType == StatusType.CRIT_CH || stat.statusType == StatusType.CRIT_DMG) stat.CritStatusUpdate();
+        else stat.StatusUpdate();
+
+        stat.SetUpgradeUI();
     }
 
-    public void UpgradeHealth()
+    // 버튼이 눌린 동안 호출되는 메서드
+    private void OnUpgradeButtonDown(UpgradeData stat)
     {
-        if (!CurrencyManager.instance.SubtractCurrency("Gold", healthUpgradeData.upgradePrice)) return;
+        if (continuousUpgradeCoroutine.ContainsKey(stat)) return;
 
-        healthUpgradeData.StatusUpdate();
-        SetUpgradeUI(healthUpgradeData);
+        continuousUpgradeCoroutine[stat] = StartCoroutine(RepeateUpgrade(stat));
     }
 
-    public void UpgradeDefense()
+    // 버튼 눌린 것이 취소됐을 때 호출되는 메서드
+    private void OnUpgradeButtonUp(UpgradeData stat)
     {
-        if (!CurrencyManager.instance.SubtractCurrency("Gold", defenseUpgradeData.upgradePrice)) return;
+        if (!continuousUpgradeCoroutine.ContainsKey(stat)) return;
 
-        defenseUpgradeData.StatusUpdate();
-        SetUpgradeUI(defenseUpgradeData);
+        StopCoroutine(continuousUpgradeCoroutine[stat]);
+        continuousUpgradeCoroutine.Remove(stat);
     }
 
-    public void UpgradeCritChance()
+    // 스탯을 반복적으로 강화하는 반복기
+    IEnumerator RepeateUpgrade(UpgradeData stat)
     {
-        if (!CurrencyManager.instance.SubtractCurrency("Gold", critChanceUpgradeData.upgradePrice)) return;
+        yield return CoroutineTime.GetWaitForSecondsTime(2f);
 
-        critChanceUpgradeData.CritStatusUpdate();
-        SetUpgradeUI(critChanceUpgradeData);
+        while (true)
+        {
+            UpgradeStat(stat);
+            yield return CoroutineTime.GetWaitForSecondsTime(0.3f);
+        }
     }
 
-    public void UpgradeCritDamage()
-    {
-        if (!CurrencyManager.instance.SubtractCurrency("Gold", critDamageUpgradeData.upgradePrice)) return;
-
-        critDamageUpgradeData.CritStatusUpdate();
-        SetUpgradeUI(critDamageUpgradeData);
-    }
 }
