@@ -5,6 +5,7 @@ using System;
 using TMPro;
 using UnityEngine.UI;
 using Keiwando.BigInteger;
+using UnityEngine.EventSystems;
 
 public class EquipmentUI : MonoBehaviour
 {

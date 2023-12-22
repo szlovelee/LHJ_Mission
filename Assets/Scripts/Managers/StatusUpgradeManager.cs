@@ -229,30 +229,18 @@ public class StatusUpgradeManager : MonoBehaviour
     // 버튼 초기화 메서드
     void InitializeButtonListeners()
     {
-        CreateEventTriggerInstance(attackUpgradeBtn, attackUpgradeData);
-        CreateEventTriggerInstance(healthUpgradeBtn, healthUpgradeData);
-        CreateEventTriggerInstance(defenseUpgradeBtn, defenseUpgradeData);
-        CreateEventTriggerInstance(critChanceUpgradeBtn, critChanceUpgradeData);
-        CreateEventTriggerInstance(critDamageUpgradeBtn, critDamageUpgradeData);
+        CreateEventTriggerInstances(attackUpgradeBtn, attackUpgradeData);
+        CreateEventTriggerInstances(healthUpgradeBtn, healthUpgradeData);
+        CreateEventTriggerInstances(defenseUpgradeBtn, defenseUpgradeData);
+        CreateEventTriggerInstances(critChanceUpgradeBtn, critChanceUpgradeData);
+        CreateEventTriggerInstances(critDamageUpgradeBtn, critDamageUpgradeData);
     }
 
-    void CreateEventTriggerInstance(EventTrigger trigger, UpgradeData stat)
+    void CreateEventTriggerInstances(EventTrigger trigger, UpgradeData stat)
     {
-        EventTrigger.Entry pointerClickEntry = new EventTrigger.Entry();
-        pointerClickEntry.eventID = EventTriggerType.PointerClick;
-        pointerClickEntry.callback.AddListener((eventData) => UpgradeStat(stat));
-
-        EventTrigger.Entry pointerDownEntry = new EventTrigger.Entry();
-        pointerDownEntry.eventID = EventTriggerType.PointerDown;
-        pointerDownEntry.callback.AddListener((eventData) => OnUpgradeButtonDown(stat));
-
-        EventTrigger.Entry pointerUpEntry = new EventTrigger.Entry();
-        pointerUpEntry.eventID = EventTriggerType.PointerUp;
-        pointerUpEntry.callback.AddListener((eventData) => OnUpgradeButtonUp(stat));
-
-        trigger.triggers.Add(pointerClickEntry);
-        trigger.triggers.Add(pointerDownEntry);
-        trigger.triggers.Add(pointerUpEntry);
+        UIEvents.CreateEventTriggerInstance(trigger, EventTriggerType.PointerClick, () => UpgradeStat(stat));
+        UIEvents.CreateEventTriggerInstance(trigger, EventTriggerType.PointerDown, () => OnUpgradeButtonDown(stat));
+        UIEvents.CreateEventTriggerInstance(trigger, EventTriggerType.PointerUp, () => OnUpgradeButtonUp(stat));
     }
 
     // UpdateData 초기화 메서드 - 여기서 스텟퍼센트 조정 가능
@@ -375,7 +363,7 @@ public class StatusUpgradeManager : MonoBehaviour
     {
         if (continuousUpgradeCoroutine.ContainsKey(stat)) return;
 
-        continuousUpgradeCoroutine[stat] = StartCoroutine(RepeateUpgrade(stat));
+        continuousUpgradeCoroutine[stat] = StartCoroutine(UIEvents.RepeateAction(2f, 0.3f, () => UpgradeStat(stat)));
     }
 
     // 버튼 눌린 것이 취소됐을 때 호출되는 메서드
@@ -385,18 +373,6 @@ public class StatusUpgradeManager : MonoBehaviour
 
         StopCoroutine(continuousUpgradeCoroutine[stat]);
         continuousUpgradeCoroutine.Remove(stat);
-    }
-
-    // 스탯을 반복적으로 강화하는 반복기
-    IEnumerator RepeateUpgrade(UpgradeData stat)
-    {
-        yield return CoroutineTime.GetWaitForSecondsTime(2f);
-
-        while (true)
-        {
-            UpgradeStat(stat);
-            yield return CoroutineTime.GetWaitForSecondsTime(0.3f);
-        }
     }
 
 }
