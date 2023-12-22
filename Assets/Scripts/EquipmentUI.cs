@@ -97,15 +97,28 @@ public class EquipmentUI : MonoBehaviour
     // 장비 클릭 했을 때 불리는 메서드
     public void SelectEquipment(Equipment equipment)
     {
+        int idx = (int)equipment.type;
+
+        for (int i = 0; i < selectEquipments.Length; i++)
+        {
+            if (i == idx)
+            {
+                selectEquipments[i].gameObject.SetActive(true);
+                selectEquipment = selectEquipments[i];
+            }
+            else
+            {
+                selectEquipments[i].gameObject.SetActive(false);
+            }
+        }
+
         switch (equipment.type)
         {
             case EquipmentType.Weapon:
-                selectEquipment = selectEquipments[0];
                 selectEquipment.GetComponent<WeaponInfo>().SetWeaponInfo(equipment.GetComponent<WeaponInfo>());
                 UpdateSelectedEquipmentUI(selectEquipment);
                 break;
             case EquipmentType.Armor:
-                selectEquipment = selectEquipments[1];
                 selectEquipment.GetComponent<ArmorInfo>().SetArmorInfo(equipment.GetComponent<ArmorInfo>());
                 UpdateSelectedEquipmentUI(selectEquipment);
                 break;
@@ -246,6 +259,8 @@ public class EquipmentUI : MonoBehaviour
             if (i == (int)type)
             {
                 equipmentViews[i].SetActive(true);
+                Equipment equipment = equipmentViews[i].GetComponentInChildren<Equipment>();
+                SelectEquipment(equipment);
             }
             else
             {
