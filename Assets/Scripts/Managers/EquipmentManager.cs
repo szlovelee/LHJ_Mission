@@ -9,11 +9,13 @@ public class EquipmentManager : MonoBehaviour
     public static EquipmentManager instance;
 
     [SerializeField] List<WeaponInfo> weapons = new List<WeaponInfo>();
+    [SerializeField] List<ArmorInfo> armors = new List<ArmorInfo>();
 
     [SerializeField]
     private static Dictionary<string, Equipment> allEquipment = new Dictionary<string, Equipment>();
 
     Rarity[] rarities = { Rarity.Common, Rarity.Uncommon, Rarity.Rare, Rarity.Epic, Rarity.Ancient, Rarity.Legendary, Rarity.Mythology };
+    EquipmentType[] types = { EquipmentType.Weapon, EquipmentType.Armor, EquipmentType.Accessory };
 
     [SerializeField] Color[] colors;
 
@@ -36,10 +38,12 @@ public class EquipmentManager : MonoBehaviour
         if (ES3.KeyExists("Init_Game"))
         {
             LoadAllWeapon();
+            LoadAllArmor();
         }
         else
         {
             CreateAllWeapon();
+            CreateAllArmor();
         }
     }
 
@@ -54,7 +58,7 @@ public class EquipmentManager : MonoBehaviour
             rarityIntValue = Convert.ToInt32(rarity);
             for (int level = 1; level <= maxLevel; level++)
             {
-                string name = $"{rarity}_{level}";
+                string name = $"{EquipmentType.Weapon}_{rarity}_{level}";
                 WeaponInfo weapon = weapons[weaponCount];
 
                 weapon.LoadEquipment(name);
@@ -90,7 +94,7 @@ public class EquipmentManager : MonoBehaviour
             {
                 WeaponInfo weapon = weapons[weaponCount];
 
-                string name = $"{rarity}_{level}";// Weapon Lv
+                string name = $"{EquipmentType.Weapon}_{rarity}_{level}";// Weapon Lv
 
                 int equippedEffect = level * ((int)Mathf.Pow(10, rarityIntValue + 1));
                 int ownedEffect = (int)(equippedEffect * 0.5f);
@@ -107,6 +111,72 @@ public class EquipmentManager : MonoBehaviour
                 weapon.SaveEquipment(name);
 
                 weaponCount++;
+            }
+        }
+    }
+
+    void LoadAllArmor()
+    {
+        int armorCount = 0;
+        int rarityIntValue = 0;
+
+        foreach (Rarity rarity in rarities)
+        {
+            rarityIntValue = Convert.ToInt32(rarity);
+            for (int level = 1; level <= maxLevel; level++)
+            {
+                string name = $"{EquipmentType.Armor}_{rarity}_{level}";
+                ArmorInfo armor = armors[armorCount];
+
+                armor.LoadEquipment(name);
+
+                armor.GetComponent<Button>().onClick.AddListener(() => EquipmentUI.TriggerSelectEquipment(armor));
+
+
+                AddEquipment(name, armor);
+
+
+                if (armor.OnEquipped) Player.OnEquip(armor);
+
+                armorCount++;
+
+                // 임시
+                armor.myColor = colors[rarityIntValue];
+                armor.SetUI();
+            }
+        }
+    }
+
+    void CreateAllArmor()
+    {
+        int armorCount = 0;
+        int rarityIntValue = 0;
+
+        foreach (Rarity rarity in rarities)
+        {
+            if (rarity == Rarity.None) continue;
+            rarityIntValue = Convert.ToInt32(rarity);
+            for (int level = 1; level <= maxLevel; level++)
+            {
+                ArmorInfo armor = armors[armorCount];
+
+                string name = $"{EquipmentType.Armor}_{rarity}_{level}";// Weapon Lv
+
+                int equippedEffect = level * ((int)Mathf.Pow(10, rarityIntValue + 1));
+                int ownedEffect = (int)(equippedEffect * 0.5f);
+                string equippedEffectText = $"{equippedEffect}%";
+                string ownedEffectText = $"{ownedEffect}%";
+
+                armor.SetArmorInfo(name, 1, level, false, EquipmentType.Armor, rarity,
+                                 1, equippedEffect, ownedEffect, colors[rarityIntValue]);
+
+                armor.GetComponent<Button>().onClick.AddListener(() => EquipmentUI.TriggerSelectEquipment(armor));
+
+                AddEquipment(name, armor);
+
+                armor.SaveEquipment(name);
+
+                armorCount++;
             }
         }
     }
@@ -180,9 +250,19 @@ public class EquipmentManager : MonoBehaviour
         int currentLevel = -1;
         int maxLevel = 4; // 최대 레벨 설정
 
+        // 현재 키에서 타입 제거
+        foreach (EquipmentType type in types)
+        {
+            if (currentKey.StartsWith(type.ToString()))
+            {
+                currentKey.Replace(type + "_", "");
+                break;
+            }
+        }
+
         // 현재 키에서 희귀도와 레벨 분리
         foreach (var rarity in rarities)
-        {
+        { 
             if (currentKey.StartsWith(rarity.ToString()))
             {
                 currentRarityIndex = Array.IndexOf(rarities, rarity);
@@ -216,6 +296,16 @@ public class EquipmentManager : MonoBehaviour
     {
         int currentRarityIndex = -1;
         int currentLevel = -1;
+
+        // 현재 키에서 타입 제거
+        foreach (EquipmentType type in types)
+        {
+            if (currentKey.StartsWith(type.ToString()))
+            {
+                currentKey.Replace(type + "_", "");
+                break;
+            }
+        }
 
         // 현재 키에서 희귀도와 레벨 분리
         foreach (var rarity in rarities)
