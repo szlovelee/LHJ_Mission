@@ -20,6 +20,10 @@ public class PlayerStatus : BaseStatus
     BigInteger currentDefenseValue = 0;
 
     [SerializeField]
+    BigInteger attackSpeedPercent = 0;
+    BigInteger currentAttackSpeedValue = 0;
+
+    [SerializeField]
     BigInteger critChancePercent = 0;
     BigInteger currentCritChanceValue = 0;
 
@@ -41,6 +45,9 @@ public class PlayerStatus : BaseStatus
                 break;
             case StatusType.DEF:
                 Player.instance.SetCurrentStatus(statusType, IncreaseBaseStat(ref baseDefense, addValue, ref currentDefenseValue, defensePercent));
+                break;
+            case StatusType.ATK_SPEED:
+                Player.instance.SetCurrentStatus(statusType, IncreaseBaseStat(ref baseAttackSpeed, addValue, ref currentAttackSpeedValue, attackSpeedPercent));
                 break;
             case StatusType.CRIT_DMG:
                 Player.instance.SetCurrentStatus(statusType, IncreaseBaseStat(ref baseCritDamage, addValue, ref currentCritDamageValue, critDamagePercent));
@@ -74,6 +81,9 @@ public class PlayerStatus : BaseStatus
             case StatusType.DEF:
                 Player.instance.SetCurrentStatus(statusType, DecreaseBaseStat(ref baseDefense, subtractValue, ref currentDefenseValue, defensePercent));
                 break;
+            case StatusType.ATK_SPEED:
+                Player.instance.SetCurrentStatus(statusType, DecreaseBaseStat(ref baseAttackSpeed, subtractValue, ref currentAttackSpeedValue, attackSpeedPercent));
+                break;
             case StatusType.CRIT_DMG:
                 Player.instance.SetCurrentStatus(statusType, DecreaseBaseStat(ref baseCritDamage, subtractValue, ref currentCritDamageValue, critDamagePercent));
                 break;
@@ -105,6 +115,9 @@ public class PlayerStatus : BaseStatus
             case StatusType.DEF:
                 Player.instance.SetCurrentStatus(statusType, IncreaseBaseStatByPercent(ref defensePercent, addPercent, ref currentDefenseValue, baseDefense));
                 break;
+            case StatusType.ATK_SPEED:
+                Player.instance.SetCurrentStatus(statusType, IncreaseBaseStatByPercent(ref attackSpeedPercent, addPercent, ref currentAttackSpeedValue, baseAttackSpeed));
+                break;
             case StatusType.CRIT_DMG:
                 Player.instance.SetCurrentStatus(statusType, IncreaseBaseStatByPercent(ref critDamagePercent, addPercent, ref currentCritDamageValue, baseCritDamage));
                 break;
@@ -124,6 +137,9 @@ public class PlayerStatus : BaseStatus
                 break;
             case StatusType.DEF:
                 Player.instance.SetCurrentStatus(statusType, DecreaseBaseStatByPercent(ref defensePercent, subtractPercent, ref currentDefenseValue, baseDefense));
+                break;
+            case StatusType.ATK_SPEED:
+                Player.instance.SetCurrentStatus(statusType, DecreaseBaseStatByPercent(ref attackSpeedPercent, subtractPercent, ref currentAttackSpeedValue, baseAttackSpeed));
                 break;
             case StatusType.CRIT_DMG:
                 Player.instance.SetCurrentStatus(statusType, DecreaseBaseStatByPercent(ref critDamagePercent, subtractPercent, ref currentCritDamageValue, baseCritDamage));
