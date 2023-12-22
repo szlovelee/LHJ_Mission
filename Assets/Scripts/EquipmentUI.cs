@@ -5,6 +5,7 @@ using System;
 using TMPro;
 using UnityEngine.UI;
 using Keiwando.BigInteger;
+using UnityEngine.EventSystems;
 
 public class EquipmentUI : MonoBehaviour
 {
@@ -27,13 +28,14 @@ public class EquipmentUI : MonoBehaviour
 
     [Header("강화 패널")]
     [SerializeField] Equipment enhanceEquipment; // 강화 무기
-    [SerializeField] Button enhanceBtn; // 강화 버튼
+    [SerializeField] EventTrigger enhanceBtn; // 강화 버튼
     [SerializeField] TMP_Text enhanceLevelText; // 강화 레벨 / 장비 강화 (0/0)
     [SerializeField] TMP_Text EquippedPreview; // 장착 효과 미리보기 / 장착 효과 0 → 0
     [SerializeField] TMP_Text OwnedPreview;// 보유 효과 미리보기 / 보유 효과 0 → 0
     [SerializeField] TMP_Text EnhanceCurrencyText; // 현재 재화
     [SerializeField] TMP_Text RequiredCurrencyText; // 필요 재화
 
+    private Coroutine enhanceCoroutine;
 
     private void Awake()
     {
@@ -66,8 +68,11 @@ public class EquipmentUI : MonoBehaviour
         equipBtn.onClick.AddListener(OnClickEquip);
         unEquipBtn.onClick.AddListener(OnClickUnEquip);
         enhancePnaelBtn.onClick.AddListener(OnClickEnhancePanel);
-        enhanceBtn.onClick.AddListener(OnClickEnhance);
         compositeBtn.onClick.AddListener(OnclickComposite);
+
+        UIEvents.CreateEventTriggerInstance(enhanceBtn, EventTriggerType.PointerClick, OnClickEnhance);
+        UIEvents.CreateEventTriggerInstance(enhanceBtn, EventTriggerType.PointerDown, OnEnhanceButtonDown);
+        UIEvents.CreateEventTriggerInstance(enhanceBtn, EventTriggerType.PointerUp, OnEnhanceButtonUp);
     }
 
     // 장비 선택 이벤트 트리거 하는 메서드 
@@ -176,6 +181,23 @@ public class EquipmentUI : MonoBehaviour
         UpdateSelectEquipmentData();
 
         OnClickEnhancePanel();
+    }
+
+    // 강화 버튼이 눌린 동안 호출되는 메서드
+    private void OnEnhanceButtonDown()
+    {
+        if (enhanceCoroutine!= null) return;
+
+        enhanceCoroutine = StartCoroutine(UIEvents.RepeateAction(2f, 0.3f, OnClickEnhance));
+    }
+
+    // 강화 버튼 눌린 것이 취소됐을 때 호출되는 메서드
+    private void OnEnhanceButtonUp()
+    {
+        if (enhanceCoroutine == null) return;
+
+        StopCoroutine(enhanceCoroutine);
+        enhanceCoroutine = null;
     }
 
     // 장착 버튼 눌렸을 때 불리는 메서드
