@@ -15,8 +15,7 @@ public class Player : MonoBehaviour
     PlayerStatus status;
 
 
-    [SerializeField]
-    [Header("총 공격력")]
+    [SerializeField][Header("총 공격력")]
     private BigInteger currentAttack;
     [SerializeField][Header("총 체력")]
     private BigInteger currentHealth;
