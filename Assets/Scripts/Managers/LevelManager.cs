@@ -1,5 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 public struct Level
@@ -36,6 +35,9 @@ public class LevelManager : MonoBehaviour
     private int currentLevel;
     private int currentExp;
 
+    public event Action<int> OnExpChange;
+    public event Action<int> OnLevelChange;
+    public event Action<int> OnMaxExpChange;
 
     private void Awake()
     {
@@ -48,9 +50,28 @@ public class LevelManager : MonoBehaviour
         isDataLoaded = LoadLevel();
     }
 
+    public int GetCurrentLevel()
+    {
+        return currentLevel;
+    }
+
+    public int GetCurrentExp()
+    {
+        return currentExp;
+    }
+
+    public int GetMaxExp()
+    {
+        return maxExp;
+    }
+
     public void UpdateExp(int increaseExp)
     {
+        if (!isDataLoaded) LoadLevel();
+
         currentExp += increaseExp;
+        OnExpChange?.Invoke(currentExp);
+
         UpdateLevel();
     }
 
@@ -60,9 +81,12 @@ public class LevelManager : MonoBehaviour
         {
             currentLevel++;
             currentLevel = Mathf.Min(currentLevel, maxLevel);
+            OnLevelChange?.Invoke(currentLevel);
 
             UpdateMaxExp();
         }
+
+        SaveLevel();
     }
 
     private void UpdateMaxExp()
@@ -70,15 +94,17 @@ public class LevelManager : MonoBehaviour
         if (currentLevel >= maxLevel) return;
 
         maxExp += maxExp / 5;
+        OnMaxExpChange?.Invoke(maxExp);
     }
 
-    public void SaveLevel()
+
+    private void SaveLevel()
     {
         Level level = new Level(baseExp, maxLevel, maxExp, currentLevel, currentExp);
         ES3.Save("level", level);
     }
 
-    public bool LoadLevel()
+    private bool LoadLevel()
     {
         if (ES3.KeyExists("level"))
         {
