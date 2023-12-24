@@ -11,12 +11,13 @@ public class Player : MonoBehaviour
 
     public static Player instance;
 
-    [SerializeField]
-    PlayerStatus status;
 
+    private LevelManager levelManager;
 
     [SerializeField]
-    [Header("총 공격력")]
+    private PlayerStatus status;
+
+    [SerializeField][Header("총 공격력")]
     private BigInteger currentAttack;
     [SerializeField][Header("총 체력")]
     private BigInteger currentHealth;
@@ -41,6 +42,8 @@ public class Player : MonoBehaviour
 
     private void Start()
     {
+        levelManager = LevelManager.instance;
+        LoadPlayerStatus();
         SetupEventListeners();
     }
 
@@ -54,6 +57,13 @@ public class Player : MonoBehaviour
         StatusUpgradeManager.OnCritChanceUpgrade += status.IncreaseBaseStat;
         StatusUpgradeManager.OnCritDamageUpgrade += status.IncreaseBaseStat;
 
+#if UNITY_EDITOR
+        Debug.Assert(levelManager != null, "NULL : LEVELMANAGER");
+# endif
+
+        levelManager.OnAttackReward += status.IncreaseBaseStat;
+        levelManager.OnHPReward += status.IncreaseBaseStat;
+        levelManager.OnDefenseReward += status.IncreaseBaseStat;
 
         OnEquip += Equip;
         OnUnEquip += UnEquip;
@@ -105,6 +115,8 @@ public class Player : MonoBehaviour
                 currentCritDamage = statusValue;
                 break;
         }
+
+        SavePlayerStatus();
     }
 
     // 장비 장착하는 메서드 
@@ -145,6 +157,19 @@ public class Player : MonoBehaviour
                 Debug.Log("장비 장착 해제" + equiped_Weapon.name);
                 equiped_Weapon = null;
                 break;
+        }
+    }
+
+    private void SavePlayerStatus()
+    {
+        ES3.Save<PlayerStatus>("PlayerStatus", status);
+    }
+
+    private void LoadPlayerStatus()
+    {
+        if (ES3.KeyExists("PlayerStatus"))
+        {
+            status = ES3.Load<PlayerStatus>("PlayerStatus");
         }
     }
 }
