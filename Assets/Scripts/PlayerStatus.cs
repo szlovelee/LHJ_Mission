@@ -3,7 +3,6 @@ using UnityEngine;
 using Keiwando.BigInteger;
 using System;
 
-
 [Serializable]
 public class PlayerStatus : BaseStatus
 {
