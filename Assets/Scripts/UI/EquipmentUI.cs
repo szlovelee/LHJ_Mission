@@ -29,6 +29,8 @@ public class EquipmentUI : MonoBehaviour
     [SerializeField] Button enhancePnaelBtn;
     [SerializeField] Button compositeBtn;
 
+    [SerializeField] Button autoEquipBtn;
+
 
     [Header("강화 패널")]
     [SerializeField] Equipment enhanceEquipment; // 강화 무기
@@ -39,6 +41,7 @@ public class EquipmentUI : MonoBehaviour
     [SerializeField] TMP_Text EnhanceCurrencyText; // 현재 재화
     [SerializeField] TMP_Text RequiredCurrencyText; // 필요 재화
 
+    private EquipmentManager equipmentManager;
     private Coroutine enhanceCoroutine;
 
     private void Awake()
@@ -48,10 +51,13 @@ public class EquipmentUI : MonoBehaviour
 
     private void Start()
     {
+        equipmentManager = EquipmentManager.instance;
+
+        Debug.Assert(equipmentManager != null, "NULL : EQUIPMENTMANAGER");
         Debug.Assert(equipmentTabs != null, "NULL : EQUIPMENT TABS");
         Debug.Assert(equipmentViews != null, "NULL : EQUIPMENT VIEWS");
 
-        //SetupEventListeners();
+        SetUpEventListeners();
         InitializeButtonListeners();
 
     }
@@ -69,6 +75,12 @@ public class EquipmentUI : MonoBehaviour
         UpdateEquipmentUI -= SetOnEquippedBtnUI;
     }
 
+    private void SetUpEventListeners()
+    {
+        equipmentManager.OnEquipmentChange += SetAutoEquipBtnUI;
+        equipmentManager.OnEquipmentChange += SetComapositeAllBtnUI;
+    }
+
     // 버튼 클릭 리스너 설정하는 메서드 
     void InitializeButtonListeners()
     {
@@ -81,7 +93,8 @@ public class EquipmentUI : MonoBehaviour
         equipBtn.onClick.AddListener(OnClickEquip);
         unEquipBtn.onClick.AddListener(OnClickUnEquip);
         enhancePnaelBtn.onClick.AddListener(OnClickEnhancePanel);
-        compositeBtn.onClick.AddListener(OnclickComposite);
+        compositeBtn.onClick.AddListener(OnClickComposite);
+        autoEquipBtn.onClick.AddListener(OnClickAutoEquip);
 
         UIEvents.CreateEventTriggerInstance(enhanceBtn, EventTriggerType.PointerClick, OnClickEnhance);
         UIEvents.CreateEventTriggerInstance(enhanceBtn, EventTriggerType.PointerDown, OnEnhanceButtonDown);
@@ -160,6 +173,30 @@ public class EquipmentUI : MonoBehaviour
         }
     }
 
+    // 자동 장착 버튼 활성화 / 비활성화 메서드
+    void SetAutoEquipBtnUI()
+    {
+        Equipment[] highest = equipmentManager.GetHighestEquipments();
+        Equipment[] equipped = equipmentManager.GetEquippedEquipments();
+
+        for (int i = 0; i < highest.Length; i++)
+        {
+            if (highest[i] != equipped[i])
+            {
+                autoEquipBtn.interactable = true;
+            }
+            else
+            {
+                autoEquipBtn.interactable = false;
+            }
+        }
+    }
+
+    void SetComapositeAllBtnUI()
+    {
+
+    }
+
     // 강화 판넬 버튼 눌렸을 때 불리는 메서드
     public void OnClickEnhancePanel()
     {
@@ -188,7 +225,7 @@ public class EquipmentUI : MonoBehaviour
     }
 
     // 합성 버튼 눌렸을 때 불리는 메서드
-    public void OnclickComposite()
+    public void OnClickComposite()
     {
         EquipmentManager.instance.Composite(selectEquipment);
 
@@ -244,6 +281,18 @@ public class EquipmentUI : MonoBehaviour
     {
         Player.OnUnEquip?.Invoke(selectEquipment.type);
         
+    }
+
+    public void OnClickAutoEquip()
+    {
+        Equipment[] highest = equipmentManager.GetHighestEquipments();
+
+        foreach(Equipment equipment in highest)
+        {
+            if (equipment == null) continue;
+
+            Player.OnEquip?.Invoke(equipment);
+        }
     }
 
     // 선택한 장비 데이터 업데이트 (저장한다고 생각하면 편함)

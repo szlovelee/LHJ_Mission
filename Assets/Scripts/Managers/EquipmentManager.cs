@@ -8,14 +8,19 @@ public class EquipmentManager : MonoBehaviour
 {
     public static EquipmentManager instance;
 
+    Rarity[] rarities;
+    EquipmentType[] types;
+
     [SerializeField] List<WeaponInfo> weapons = new List<WeaponInfo>();
     [SerializeField] List<ArmorInfo> armors = new List<ArmorInfo>();
 
     [SerializeField]
     private static Dictionary<string, Equipment> allEquipment = new Dictionary<string, Equipment>();
 
-    Rarity[] rarities = { Rarity.Common, Rarity.Uncommon, Rarity.Rare, Rarity.Epic, Rarity.Ancient, Rarity.Legendary, Rarity.Mythology };
-    EquipmentType[] types = { EquipmentType.Weapon, EquipmentType.Armor, EquipmentType.Accessory };
+    Equipment[] equippedEquipments;
+    Equipment[] highestEquipments;
+
+    public event Action OnEquipmentChange;
 
     [SerializeField] Color[] colors;
 
@@ -26,14 +31,42 @@ public class EquipmentManager : MonoBehaviour
         instance = this;
     }
 
+    private void Start()
+    {
+        SetEnumArray();
+        AddEventListeners();
+    }
+
+    private void AddEventListeners()
+    {
+        Player.OnEquip += UpdateEquppedEquipment;
+        Player.OnUnEquip += UpdateEquppedEquipment;
+    }
+
     // 장비 매니저 초기화 메서드
     public void InitEquipmentManager()
     {
-        SetAllWeapons();
+        SetAllEquipments();
+        OnEquipmentUpdate();
+        LoadEquipped();
+    }
+
+    private void SetEnumArray()
+    {
+        types = (EquipmentType[])Enum.GetValues(typeof(EquipmentType));
+
+        Rarity[] raritiesRaw = (Rarity[])Enum.GetValues(typeof(Rarity));
+
+        rarities = new Rarity[raritiesRaw.Length - 1];
+
+        for (int i = 0; i < rarities.Length; i++)
+        {
+            rarities[i] = raritiesRaw[i];
+        }
     }
 
     // 장비들 업데이트 하는 메서드
-    void SetAllWeapons()
+    void SetAllEquipments()
     {
         if (ES3.KeyExists("Init_Game"))
         {
@@ -181,6 +214,12 @@ public class EquipmentManager : MonoBehaviour
         }
     }
 
+    public void OnEquipmentUpdate()
+    {
+        SortEquipments();
+        OnEquipmentChange?.Invoke();
+    }
+
     // 매개변수로 받은 장비 합성하는 메서드
     public int Composite(Equipment equipment)
     {
@@ -197,6 +236,8 @@ public class EquipmentManager : MonoBehaviour
 
         nextEquipment.SaveEquipment(nextEquipment.name);
 
+        OnEquipmentUpdate();
+
         return compositeCount;
     }
 
@@ -211,6 +252,52 @@ public class EquipmentManager : MonoBehaviour
         {
             Debug.LogWarning($"Weapon already exists in the dictionary: {equipmentName}");
         }
+    }
+
+    public void SortEquipments()
+    {
+        if (highestEquipments == null) highestEquipments = new Equipment[types.Length];
+
+        SortEquipments<WeaponInfo>(weapons);
+        SortEquipments<ArmorInfo>(armors);
+
+        highestEquipments[0] = weapons[0];
+        highestEquipments[1] = armors[0];
+    }
+
+    private void SortEquipments<T>(List<T> equipments) where T : Equipment
+    {
+        equipments.Sort((a, b) =>
+        {
+            int rarityComparison = b.rarity.CompareTo(a.rarity);
+
+            if (rarityComparison != 0)
+            {
+                return rarityComparison;
+            }
+
+            int levelComparision = b.level.CompareTo(a.level);
+
+            return levelComparision;
+        });
+    }
+
+    private void UpdateEquppedEquipment(Equipment equipment)
+    {
+        if (equippedEquipments == null) equippedEquipments = new Equipment[types.Length];
+
+        int idx = (int)equipment.type;
+        equippedEquipments[idx] = equipment;
+
+        SaveEquipped();
+    }
+
+    private void UpdateEquppedEquipment(EquipmentType type)
+    {
+        int idx = (int)type;
+        equippedEquipments[idx] = null;
+
+        SaveEquipped();
     }
 
     // AllEquipment에서 매개변수로 받은 string을 key로 사용해 Equipment 찾는 매서드
@@ -338,4 +425,28 @@ public class EquipmentManager : MonoBehaviour
         return null;
     }
 
+    public Equipment[] GetHighestEquipments()
+    {
+        if (highestEquipments == null) return new Equipment[types.Length];
+        return (Equipment[])highestEquipments.Clone();
+    }
+
+    public Equipment[] GetEquippedEquipments()
+    {
+        if (equippedEquipments == null) return new Equipment[types.Length];
+        else return (Equipment[])equippedEquipments.Clone();
+    }
+
+    private void SaveEquipped()
+    {
+        ES3.Save<Equipment[]>("euippedEquipment", equippedEquipments);
+    }
+
+    private void LoadEquipped()
+    {
+        if (ES3.KeyExists("euippedEquipment"))
+        {
+            equippedEquipments = ES3.Load<Equipment[]>("euippedEquipment");
+        }
+    }
 }
