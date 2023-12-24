@@ -39,6 +39,14 @@ public class LevelManager : MonoBehaviour
     public event Action<int> OnLevelChange;
     public event Action<int> OnMaxExpChange;
 
+    private int levelUpAttackReward = 2;
+    private int levelUpHPReward = 50;
+    private int levelUpDefenseReward = 2;
+
+    public event Action<StatusType, int> OnAttackReward;
+    public event Action<StatusType, int> OnHPReward;
+    public event Action<StatusType, int> OnDefenseReward;
+
     private void Awake()
     {
         instance = this;
@@ -48,6 +56,7 @@ public class LevelManager : MonoBehaviour
     private void Start()
     {
         isDataLoaded = LoadLevel();
+        Logging();
     }
 
     public int GetCurrentLevel()
@@ -82,6 +91,7 @@ public class LevelManager : MonoBehaviour
             currentLevel++;
             currentLevel = Mathf.Min(currentLevel, maxLevel);
             OnLevelChange?.Invoke(currentLevel);
+            AddLevelUpReward();
 
             currentExp -= maxExp;
             OnExpChange?.Invoke(currentExp);
@@ -90,6 +100,15 @@ public class LevelManager : MonoBehaviour
         }
 
         SaveLevel();
+    }
+
+    private void AddLevelUpReward()
+    {
+        OnAttackReward?.Invoke(StatusType.ATK, levelUpAttackReward);
+        OnDefenseReward?.Invoke(StatusType.DEF, levelUpDefenseReward);
+        OnHPReward?.Invoke(StatusType.HP, levelUpHPReward);
+
+        Logging();
     }
 
     private void UpdateMaxExp()
@@ -135,5 +154,13 @@ public class LevelManager : MonoBehaviour
         currentLevel = 1;
         currentExp = 0;
         return true;
+    }
+
+    //TODO: Delete this method
+    private void Logging()
+    {
+        Debug.Log(Player.instance.GetCurrentStatus(StatusType.ATK));
+        Debug.Log(Player.instance.GetCurrentStatus(StatusType.HP));
+        Debug.Log(Player.instance.GetCurrentStatus(StatusType.DEF));
     }
 }

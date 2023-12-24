@@ -11,9 +11,11 @@ public class Player : MonoBehaviour
 
     public static Player instance;
 
-    [SerializeField]
-    PlayerStatus status;
 
+    private LevelManager levelManager;
+
+    [SerializeField]
+    private PlayerStatus status;
 
     [SerializeField][Header("총 공격력")]
     private BigInteger currentAttack;
@@ -40,6 +42,7 @@ public class Player : MonoBehaviour
 
     private void Start()
     {
+        levelManager = LevelManager.instance;
         SetupEventListeners();
     }
 
@@ -53,6 +56,13 @@ public class Player : MonoBehaviour
         StatusUpgradeManager.OnCritChanceUpgrade += status.IncreaseBaseStat;
         StatusUpgradeManager.OnCritDamageUpgrade += status.IncreaseBaseStat;
 
+#if UNITY_EDITOR
+        Debug.Assert(levelManager != null, "NULL : LEVELMANAGER");
+# endif
+
+        levelManager.OnAttackReward += status.IncreaseBaseStat;
+        levelManager.OnHPReward += status.IncreaseBaseStat;
+        levelManager.OnDefenseReward += status.IncreaseBaseStat;
 
         OnEquip += Equip;
         OnUnEquip += UnEquip;
