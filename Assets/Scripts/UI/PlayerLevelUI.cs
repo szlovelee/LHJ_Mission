@@ -54,7 +54,7 @@ public class PlayerLevelUI : MonoBehaviour
     private void UpdateExpUI()
     {
         expText.text = $"{currentExp} / {maxExp}";
-        expBar.value = currentExp / maxExp;
+        expBar.value = (float)currentExp / maxExp;
     }
 
     private void UpdateLevel(int level)

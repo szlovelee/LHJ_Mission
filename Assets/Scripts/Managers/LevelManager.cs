@@ -83,6 +83,9 @@ public class LevelManager : MonoBehaviour
             currentLevel = Mathf.Min(currentLevel, maxLevel);
             OnLevelChange?.Invoke(currentLevel);
 
+            currentExp -= maxExp;
+            OnExpChange?.Invoke(currentExp);
+
             UpdateMaxExp();
         }
 
