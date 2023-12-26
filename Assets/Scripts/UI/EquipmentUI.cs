@@ -79,8 +79,9 @@ public class EquipmentUI : MonoBehaviour
 
     private void SetUpEventListeners()
     {
-        equipmentManager.OnEquipmentChange += SetAutoEquipBtnUI;
-        equipmentManager.OnEquipmentChange += SetComapositeAllBtnUI;
+        equipmentManager.OnEquipChange += SetAutoEquipBtnUI;
+        equipmentManager.OnRankChange += SetAutoEquipBtnUI;
+        equipmentManager.OnRankChange += SetComapositeAllBtnUI;
     }
 
     // 버튼 클릭 리스너 설정하는 메서드 
@@ -189,6 +190,7 @@ public class EquipmentUI : MonoBehaviour
             if (highest[i] != equipped[i])
             {
                 autoEquipBtn.interactable = true;
+                break;
             }
             else
             {

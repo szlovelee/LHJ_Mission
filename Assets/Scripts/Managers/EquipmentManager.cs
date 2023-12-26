@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Keiwando.BigInteger;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,19 +9,29 @@ public class EquipmentManager : MonoBehaviour
 {
     public static EquipmentManager instance;
 
+    #region Enum Array
     Rarity[] rarities;
     EquipmentType[] types;
+    #endregion
 
+
+    #region Equipments Collections
     [SerializeField] List<WeaponInfo> weapons = new List<WeaponInfo>();
     [SerializeField] List<ArmorInfo> armors = new List<ArmorInfo>();
+    List<WeaponInfo> sortedWeapons;
+    List<ArmorInfo> sortedArmors;
 
     [SerializeField]
     private static Dictionary<string, Equipment> allEquipment = new Dictionary<string, Equipment>();
 
     Equipment[] equippedEquipments;
     Equipment[] highestEquipments;
+    #endregion
 
-    public event Action OnEquipmentChange;
+
+    public event Action OnEquipChange; //장착이 바뀌었을 때
+    public event Action OnRankChange; //장비 속성 (효과, 등급)이 변경되었을 때
+
 
     [SerializeField] Color[] colors;
 
@@ -47,7 +58,8 @@ public class EquipmentManager : MonoBehaviour
     public void InitEquipmentManager()
     {
         SetAllEquipments();
-        OnEquipmentUpdate();
+        SortEquipments();
+        EquipChange();
         LoadEquipped();
     }
 
@@ -214,10 +226,9 @@ public class EquipmentManager : MonoBehaviour
         }
     }
 
-    public void OnEquipmentUpdate()
+    public void EquipChange()
     {
-        SortEquipments();
-        OnEquipmentChange?.Invoke();
+        OnEquipChange?.Invoke();
     }
 
     // 매개변수로 받은 장비 합성하는 메서드
@@ -236,7 +247,7 @@ public class EquipmentManager : MonoBehaviour
 
         nextEquipment.SaveEquipment(nextEquipment.name);
 
-        OnEquipmentUpdate();
+        SortEquipments();
 
         return compositeCount;
     }
@@ -257,18 +268,30 @@ public class EquipmentManager : MonoBehaviour
     public void SortEquipments()
     {
         if (highestEquipments == null) highestEquipments = new Equipment[types.Length];
+        if (sortedWeapons == null) sortedWeapons = new List<WeaponInfo>(weapons);
+        if (sortedArmors == null) sortedArmors = new List<ArmorInfo>(armors);
+        
 
-        SortEquipments<WeaponInfo>(weapons);
-        SortEquipments<ArmorInfo>(armors);
+        SortEquipments<WeaponInfo>(sortedWeapons);
+        SortEquipments<ArmorInfo>(sortedArmors);
 
-        highestEquipments[0] = weapons[0];
-        highestEquipments[1] = armors[0];
+        highestEquipments[0] = sortedWeapons[0];
+        highestEquipments[1] = sortedArmors[0];
+
+        OnRankChange?.Invoke();
     }
 
     private void SortEquipments<T>(List<T> equipments) where T : Equipment
     {
         equipments.Sort((a, b) =>
         {
+            int effectComparison = BigInteger.ToInt64(b.basicEquippedEffect).CompareTo(BigInteger.ToInt64(a.basicEquippedEffect));
+
+            if (effectComparison != 0)
+            {
+                return effectComparison;
+            }
+
             int rarityComparison = b.rarity.CompareTo(a.rarity);
 
             if (rarityComparison != 0)
@@ -290,6 +313,7 @@ public class EquipmentManager : MonoBehaviour
         equippedEquipments[idx] = equipment;
 
         SaveEquipped();
+        EquipChange();
     }
 
     private void UpdateEquppedEquipment(EquipmentType type)
@@ -298,6 +322,7 @@ public class EquipmentManager : MonoBehaviour
         equippedEquipments[idx] = null;
 
         SaveEquipped();
+        EquipChange();
     }
 
     // AllEquipment에서 매개변수로 받은 string을 key로 사용해 Equipment 찾는 매서드
