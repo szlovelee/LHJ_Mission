@@ -21,11 +21,9 @@ public struct Level
     }
 }
 
-public class LevelManager : MonoBehaviour
+public class PlayerLevel
 {
-    public static LevelManager instance;
-
-    private bool isDataLoaded;
+    private bool isDataLoaded = false;
 
     private int baseExp;
 
@@ -47,13 +45,7 @@ public class LevelManager : MonoBehaviour
     public event Action<StatusType, int> OnHPReward;
     public event Action<StatusType, int> OnDefenseReward;
 
-    private void Awake()
-    {
-        instance = this;
-        isDataLoaded = false;
-    }
-
-    private void Start()
+    public void Initialize()
     {
         isDataLoaded = LoadLevel();
         Logging();

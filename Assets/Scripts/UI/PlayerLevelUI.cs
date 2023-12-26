@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 public class PlayerLevelUI : MonoBehaviour
 {
-    private LevelManager levelManager;
+    private Player player;
 
     [SerializeField] private TMP_Text levelText;
     [SerializeField] private TMP_Text expText;
@@ -16,7 +16,7 @@ public class PlayerLevelUI : MonoBehaviour
 
     private void Start()
     {
-        levelManager = LevelManager.instance;
+        player = Player.instance;
         AddCallbacks();
         SetUI();
     }
@@ -24,23 +24,16 @@ public class PlayerLevelUI : MonoBehaviour
     private void AddCallbacks()
     {
 #if UNITY_EDITOR
-        Debug.Assert(levelManager != null, "NULL : LEVELMANAGER");
+        Debug.Assert(player != null, "NULL : PLAYER");
 # endif
-
-        levelManager.OnLevelChange += UpdateLevel;
-        levelManager.OnExpChange += UpdateCurrentExp;
-        levelManager.OnMaxExpChange += UpdateMaxExp;
+        player.AddLevelCallbacks(levelChange: UpdateLevel, expChange: UpdateCurrentExp, maxExpChange: UpdateMaxExp);
     }
 
     private void SetUI()
     {
-#if UNITY_EDITOR
-        Debug.Assert(levelManager != null, "NULL : LEVELMANAGER");
-# endif
-
-        level = levelManager.GetCurrentLevel();
-        currentExp = levelManager.GetCurrentExp();
-        maxExp = levelManager.GetMaxExp();
+        level = player.GetCurrentLevel();
+        currentExp = player.GetCurrentExp();
+        maxExp = player.GetMaxExp();
 
         UpdateLevelUI();
         UpdateExpUI();
