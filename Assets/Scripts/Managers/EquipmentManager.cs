@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Keiwando.BigInteger;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,19 +9,29 @@ public class EquipmentManager : MonoBehaviour
 {
     public static EquipmentManager instance;
 
+    #region Enum Array
     Rarity[] rarities;
     EquipmentType[] types;
+    #endregion
 
+
+    #region Equipments Collections
     [SerializeField] List<WeaponInfo> weapons = new List<WeaponInfo>();
     [SerializeField] List<ArmorInfo> armors = new List<ArmorInfo>();
+    List<WeaponInfo> sortedWeapons;
+    List<ArmorInfo> sortedArmors;
 
     [SerializeField]
     private static Dictionary<string, Equipment> allEquipment = new Dictionary<string, Equipment>();
 
     Equipment[] equippedEquipments;
     Equipment[] highestEquipments;
+    #endregion
 
-    public event Action OnEquipmentChange;
+
+    public event Action OnEquipChange; //장착이 바뀌었을 때
+    public event Action OnRankChange; //장비 속성 (효과, 등급)이 변경되었을 때
+
 
     [SerializeField] Color[] colors;
 
@@ -47,7 +58,8 @@ public class EquipmentManager : MonoBehaviour
     public void InitEquipmentManager()
     {
         SetAllEquipments();
-        OnEquipmentUpdate();
+        SortEquipments();
+        EquipChange();
         LoadEquipped();
     }
 
@@ -214,31 +226,50 @@ public class EquipmentManager : MonoBehaviour
         }
     }
 
-    public void OnEquipmentUpdate()
-    {
-        SortEquipments();
-        OnEquipmentChange?.Invoke();
-    }
-
     // 매개변수로 받은 장비 합성하는 메서드
-    public int Composite(Equipment equipment)
+    public int Composite(Equipment equipment, bool isSingleComposition)
     {
         if (equipment.quantity < 4) return -1;
+        if (equipment.rarity == rarities[rarities.Length - 1] && equipment.level == maxLevel) return 0;
 
         int compositeCount = equipment.quantity / 4;
         equipment.quantity %= 4;
+        equipment.SetQuantityUI();
+        equipment.SaveEquipment(equipment.name);
 
         Equipment nextEquipment = GetNextEquipment(equipment.name);
-
         nextEquipment.quantity += compositeCount;
-
         nextEquipment.SetQuantityUI();
-
         nextEquipment.SaveEquipment(nextEquipment.name);
 
-        OnEquipmentUpdate();
+        if (isSingleComposition) SortEquipments();
 
         return compositeCount;
+    }
+
+    public void CompositeAll(EquipmentType type)
+    {
+        switch (type)
+        {
+            case EquipmentType.Weapon:
+                CompositeAll<WeaponInfo>(weapons);
+                break;
+            case EquipmentType.Armor:
+                CompositeAll<ArmorInfo>(armors);
+                break; 
+        }
+
+        SortEquipments();
+    }
+
+    private void CompositeAll<T>(List<T> list) where T : Equipment
+    {
+        int length = list.Count;
+        for (int i = 0; i < length; i++)
+        {
+            Equipment equipment = list[i];
+            Composite(equipment, false);
+        }
     }
 
     // AllEquipment에 Equipment 더하는 메서드
@@ -257,18 +288,30 @@ public class EquipmentManager : MonoBehaviour
     public void SortEquipments()
     {
         if (highestEquipments == null) highestEquipments = new Equipment[types.Length];
+        if (sortedWeapons == null) sortedWeapons = new List<WeaponInfo>(weapons);
+        if (sortedArmors == null) sortedArmors = new List<ArmorInfo>(armors);
+        
 
-        SortEquipments<WeaponInfo>(weapons);
-        SortEquipments<ArmorInfo>(armors);
+        SortEquipments<WeaponInfo>(sortedWeapons);
+        SortEquipments<ArmorInfo>(sortedArmors);
 
-        highestEquipments[0] = weapons[0];
-        highestEquipments[1] = armors[0];
+        highestEquipments[0] = sortedWeapons[0];
+        highestEquipments[1] = sortedArmors[0];
+
+        OnRankChange?.Invoke();
     }
 
     private void SortEquipments<T>(List<T> equipments) where T : Equipment
     {
         equipments.Sort((a, b) =>
         {
+            int effectComparison = BigInteger.ToInt64(b.basicEquippedEffect).CompareTo(BigInteger.ToInt64(a.basicEquippedEffect));
+
+            if (effectComparison != 0)
+            {
+                return effectComparison;
+            }
+
             int rarityComparison = b.rarity.CompareTo(a.rarity);
 
             if (rarityComparison != 0)
@@ -290,6 +333,7 @@ public class EquipmentManager : MonoBehaviour
         equippedEquipments[idx] = equipment;
 
         SaveEquipped();
+        EquipChange();
     }
 
     private void UpdateEquppedEquipment(EquipmentType type)
@@ -298,6 +342,12 @@ public class EquipmentManager : MonoBehaviour
         equippedEquipments[idx] = null;
 
         SaveEquipped();
+        EquipChange();
+    }
+
+    public void EquipChange()
+    {
+        OnEquipChange?.Invoke();
     }
 
     // AllEquipment에서 매개변수로 받은 string을 key로 사용해 Equipment 찾는 매서드
@@ -336,13 +386,15 @@ public class EquipmentManager : MonoBehaviour
         int currentRarityIndex = -1;
         int currentLevel = -1;
         int maxLevel = 4; // 최대 레벨 설정
+        EquipmentType currentType = EquipmentType.Weapon;
 
         // 현재 키에서 타입 제거
         foreach (EquipmentType type in types)
         {
             if (currentKey.StartsWith(type.ToString()))
             {
-                currentKey.Replace(type + "_", "");
+                currentType = type;
+                currentKey = currentKey.Replace(type + "_", "");
                 break;
             }
         }
@@ -363,13 +415,13 @@ public class EquipmentManager : MonoBehaviour
             if (currentLevel < maxLevel)
             {
                 // 같은 희귀도 내에서 다음 레벨 찾기
-                string nextKey = rarities[currentRarityIndex] + "_" + (currentLevel + 1);
+                string nextKey = $"{currentType}_{rarities[currentRarityIndex]}_{(currentLevel + 1)}";
                 return allEquipment.TryGetValue(nextKey, out Equipment nextEquipment) ? nextEquipment : null;
             }
             else if (currentRarityIndex < rarities.Length - 1)
             {
                 // 희귀도를 증가시키고 첫 번째 레벨의 장비 찾기
-                string nextKey = rarities[currentRarityIndex + 1] + "_1";
+                string nextKey = $"{currentType}_{rarities[currentRarityIndex + 1]}_1";
                 return allEquipment.TryGetValue(nextKey, out Equipment nextEquipment) ? nextEquipment : null;
             }
         }
@@ -383,13 +435,15 @@ public class EquipmentManager : MonoBehaviour
     {
         int currentRarityIndex = -1;
         int currentLevel = -1;
+        EquipmentType currentType = EquipmentType.Weapon;
 
         // 현재 키에서 타입 제거
         foreach (EquipmentType type in types)
         {
             if (currentKey.StartsWith(type.ToString()))
             {
-                currentKey.Replace(type + "_", "");
+                currentType = type;
+                currentKey = currentKey.Replace(type + "_", "");
                 break;
             }
         }
@@ -410,13 +464,13 @@ public class EquipmentManager : MonoBehaviour
             if (currentLevel > 1)
             {
                 // 같은 희귀도 내에서 이전 레벨 찾기
-                string previousKey = rarities[currentRarityIndex] + "_" + (currentLevel - 1);
+                string previousKey = $"{currentType}_{rarities[currentRarityIndex]}_{(currentLevel - 1)}";
                 return allEquipment.TryGetValue(previousKey, out Equipment prevEquipment) ? prevEquipment : null;
             }
             else if (currentRarityIndex > 0)
             {
                 // 희귀도를 낮추고 최대 레벨의 장비 찾기
-                string previousKey = rarities[currentRarityIndex - 1] + "_4";
+                string previousKey = $"{currentType}_{rarities[currentRarityIndex - 1]}_4";
                 return allEquipment.TryGetValue(previousKey, out Equipment prevEquipment) ? prevEquipment : null;
             }
         }
@@ -427,14 +481,50 @@ public class EquipmentManager : MonoBehaviour
 
     public Equipment[] GetHighestEquipments()
     {
-        if (highestEquipments == null) return new Equipment[types.Length];
-        return (Equipment[])highestEquipments.Clone();
+        return highestEquipments;
     }
 
     public Equipment[] GetEquippedEquipments()
     {
-        if (equippedEquipments == null) return new Equipment[types.Length];
-        else return (Equipment[])equippedEquipments.Clone();
+        LoadEquipped();
+        return equippedEquipments;
+    }
+
+    public bool IsEquippedUpdatable()
+    {
+        LoadEquipped();
+
+        for (int i = 0; i < highestEquipments.Length; i++)
+        {
+            if (highestEquipments[i] != equippedEquipments[i]) return true;
+        }
+        return false;
+    }
+
+    public bool IsCompositeAvailable(EquipmentType type)
+    {
+        switch (type)
+        {
+            case EquipmentType.Weapon:
+                foreach (WeaponInfo weapon in weapons)
+                {
+                    if (weapon.quantity >= 4)
+                    {
+                        return true;
+                    }
+                }
+                break;
+            case EquipmentType.Armor:
+                foreach (ArmorInfo armor in armors)
+                {
+                    if (armor.quantity >= 4)
+                    {
+                        return true;
+                    }
+                }
+                break;
+        }
+        return false;
     }
 
     private void SaveEquipped()
@@ -448,5 +538,7 @@ public class EquipmentManager : MonoBehaviour
         {
             equippedEquipments = ES3.Load<Equipment[]>("euippedEquipment");
         }
+
+        if (equippedEquipments == null) equippedEquipments = new Equipment[types.Length];
     }
 }
