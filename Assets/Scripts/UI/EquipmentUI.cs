@@ -29,6 +29,7 @@ public class EquipmentUI : MonoBehaviour
     [SerializeField] Button unEquipBtn;
     [SerializeField] Button enhancePnaelBtn;
     [SerializeField] Button compositeBtn;
+    [SerializeField] Button allCompositeBtn;
 
     [SerializeField] Button autoEquipBtn;
 
@@ -97,6 +98,7 @@ public class EquipmentUI : MonoBehaviour
         unEquipBtn.onClick.AddListener(OnClickUnEquip);
         enhancePnaelBtn.onClick.AddListener(OnClickEnhancePanel);
         compositeBtn.onClick.AddListener(OnClickComposite);
+        allCompositeBtn.onClick.AddListener(OnClickAllComposite);
         autoEquipBtn.onClick.AddListener(OnClickAutoEquip);
 
         UIEvents.CreateEventTriggerInstance(enhanceBtn, EventTriggerType.PointerClick, OnClickEnhance);
@@ -182,26 +184,26 @@ public class EquipmentUI : MonoBehaviour
     // 자동 장착 버튼 활성화 / 비활성화 메서드
     void SetAutoEquipBtnUI()
     {
-        Equipment[] highest = equipmentManager.GetHighestEquipments();
-        Equipment[] equipped = equipmentManager.GetEquippedEquipments();
-
-        for (int i = 0; i < highest.Length; i++)
+        if (equipmentManager.IsEquippedUpdatable())
         {
-            if (highest[i] != equipped[i])
-            {
-                autoEquipBtn.interactable = true;
-                break;
-            }
-            else
-            {
-                autoEquipBtn.interactable = false;
-            }
+            autoEquipBtn.interactable = true;
+        }
+        else
+        {
+            autoEquipBtn.interactable = false;
         }
     }
 
     void SetComapositeAllBtnUI()
     {
-
+        if (equipmentManager.IsCompositeAvailable(currentType))
+        {
+            allCompositeBtn.interactable = true;
+        }
+        else
+        {
+            allCompositeBtn.interactable = false;
+        }
     }
 
     // 강화 판넬 버튼 눌렸을 때 불리는 메서드
@@ -252,11 +254,18 @@ public class EquipmentUI : MonoBehaviour
     // 합성 버튼 눌렸을 때 불리는 메서드
     public void OnClickComposite()
     {
-        EquipmentManager.instance.Composite(selectEquipment);
+        EquipmentManager.instance.Composite(selectEquipment, true);
 
         selectEquipment.SetQuantityUI();
 
         UpdateSelectEquipmentData();
+    }
+
+    public void OnClickAllComposite()
+    {
+        equipmentManager.CompositeAll(currentType);
+        selectEquipment.SetQuantityUI();
+        SetComapositeAllBtnUI();
     }
 
     // 강화 버튼 눌렸을 때 불리는 메서드
@@ -305,7 +314,6 @@ public class EquipmentUI : MonoBehaviour
     public void OnClickUnEquip()
     {
         Player.OnUnEquip?.Invoke(selectEquipment.type);
-        
     }
 
 
@@ -349,5 +357,18 @@ public class EquipmentUI : MonoBehaviour
                 equipmentViews[i].SetActive(false);
             }
         }
+
+        SetComapositeAllBtnUI();
+    }
+
+    //TODO: Delete this method
+    public void AddQuantity()
+    {
+        Equipment equipment = EquipmentManager.GetEquipment(selectEquipment.name);
+        equipment.quantity++;
+        equipment.SetQuantityUI();
+        SelectEquipment(equipment);
+
+        SetComapositeAllBtnUI();
     }
 }
