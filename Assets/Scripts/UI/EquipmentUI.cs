@@ -16,9 +16,10 @@ public class EquipmentUI : MonoBehaviour
 
     [SerializeField] Button[] equipmentTabs;
     [SerializeField] GameObject[] equipmentViews;
+    private EquipmentType currentType;
 
-    [SerializeField] Equipment[] selectEquipments;
     private Equipment selectEquipment;
+    [SerializeField] Equipment[] selectEquipmentView;
     [SerializeField] TMP_Text selectEquipmentName;
     [SerializeField] TMP_Text selectEquipment_equippedEffect;
     [SerializeField] TMP_Text selectEquipment_ownedEffect;
@@ -33,7 +34,8 @@ public class EquipmentUI : MonoBehaviour
 
 
     [Header("강화 패널")]
-    [SerializeField] Equipment enhanceEquipment; // 강화 무기
+    private Equipment enhanceEquipment;
+    [SerializeField] Equipment[] enhanceEquipmentView;
     [SerializeField] EventTrigger enhanceBtn; // 강화 버튼
     [SerializeField] TMP_Text enhanceLevelText; // 강화 레벨 / 장비 강화 (0/0)
     [SerializeField] TMP_Text EquippedPreview; // 장착 효과 미리보기 / 장착 효과 0 → 0
@@ -59,7 +61,7 @@ public class EquipmentUI : MonoBehaviour
 
         SetUpEventListeners();
         InitializeButtonListeners();
-
+        SetEquipementTab(EquipmentType.Weapon);
     }
 
     // 이벤트 설정하는 메서드
@@ -112,16 +114,19 @@ public class EquipmentUI : MonoBehaviour
     {
         int idx = (int)equipment.type;
 
-        for (int i = 0; i < selectEquipments.Length; i++)
+        for (int i = 0; i < selectEquipmentView.Length; i++)
         {
             if (i == idx)
             {
-                selectEquipments[i].gameObject.SetActive(true);
-                selectEquipment = selectEquipments[i];
+                selectEquipmentView[i].gameObject.SetActive(true);
+                enhanceEquipmentView[i].gameObject.SetActive(true);
+                selectEquipment = selectEquipmentView[i];
+                enhanceEquipment = enhanceEquipmentView[i];
             }
             else
             {
-                selectEquipments[i].gameObject.SetActive(false);
+                selectEquipmentView[i].gameObject.SetActive(false);
+                enhanceEquipmentView[i].gameObject.SetActive(false);
             }
         }
 
@@ -203,20 +208,38 @@ public class EquipmentUI : MonoBehaviour
         switch (selectEquipment.type)
         {
             case EquipmentType.Weapon:
-                Equipment enhanceEquipmentTemp = EquipmentManager.GetEquipment(selectEquipment.name);
+                Equipment enhanceEquipmentTempw = EquipmentManager.GetEquipment(selectEquipment.name);
 
-                Debug.Log("가보자" + enhanceEquipmentTemp.GetComponent<WeaponInfo>().myColor);
+                Debug.Log("가보자" + enhanceEquipmentTempw.GetComponent<WeaponInfo>().myColor);
 
-                enhanceLevelText.text = $"장비 강화 ({enhanceEquipmentTemp.enhancementLevel} / {enhanceEquipmentTemp.enhancementMaxLevel}</color>)"; //장비 강화(0 / 0)
-                EquippedPreview.text = $"장착 효과 {enhanceEquipmentTemp.equippedEffect} → <color=green>{enhanceEquipmentTemp.equippedEffect + enhanceEquipmentTemp.basicEquippedEffect}</color>"; // 장착 효과 0 → 0
-                OwnedPreview.text = $"보유 효과 {enhanceEquipmentTemp.ownedEffect} → <color=green>{enhanceEquipmentTemp.ownedEffect + enhanceEquipmentTemp.basicOwnedEffect}</color>";
+                enhanceLevelText.text = $"장비 강화 ({enhanceEquipmentTempw.enhancementLevel} / {enhanceEquipmentTempw.enhancementMaxLevel}</color>)"; //장비 강화(0 / 0)
+                EquippedPreview.text = $"장착 효과 {enhanceEquipmentTempw.equippedEffect} → <color=green>{enhanceEquipmentTempw.equippedEffect + enhanceEquipmentTempw.basicEquippedEffect}</color>"; // 장착 효과 0 → 0
+                OwnedPreview.text = $"보유 효과 {enhanceEquipmentTempw.ownedEffect} → <color=green>{enhanceEquipmentTempw.ownedEffect + enhanceEquipmentTempw.basicOwnedEffect}</color>";
 
                 EnhanceCurrencyText.text = CurrencyManager.instance.GetCurrencyAmount("EnhanceStone");
 
-                Debug.Log("얼마냐 : " + enhanceEquipmentTemp.GetEnhanceStone());
-                RequiredCurrencyText.text = enhanceEquipmentTemp.GetEnhanceStone().ToString();
+                Debug.Log("얼마냐 : " + enhanceEquipmentTempw.GetEnhanceStone());
+                RequiredCurrencyText.text = enhanceEquipmentTempw.GetEnhanceStone().ToString();
 
-                enhanceEquipment.GetComponent<WeaponInfo>().SetWeaponInfo(enhanceEquipmentTemp.GetComponent<WeaponInfo>());
+                enhanceEquipment.GetComponent<WeaponInfo>().SetWeaponInfo(enhanceEquipmentTempw.GetComponent<WeaponInfo>());
+
+                enhanceEquipment.SetUI();
+                break;
+            case EquipmentType.Armor:
+                Equipment enhanceEquipmentTempA = EquipmentManager.GetEquipment(selectEquipment.name);
+
+                Debug.Log("가보자" + enhanceEquipmentTempA.GetComponent<ArmorInfo>().myColor);
+
+                enhanceLevelText.text = $"장비 강화 ({enhanceEquipmentTempA.enhancementLevel} / {enhanceEquipmentTempA.enhancementMaxLevel}</color>)"; //장비 강화(0 / 0)
+                EquippedPreview.text = $"장착 효과 {enhanceEquipmentTempA.equippedEffect} → <color=green>{enhanceEquipmentTempA.equippedEffect + enhanceEquipmentTempA.basicEquippedEffect}</color>"; // 장착 효과 0 → 0
+                OwnedPreview.text = $"보유 효과 {enhanceEquipmentTempA.ownedEffect} → <color=green>{enhanceEquipmentTempA.ownedEffect + enhanceEquipmentTempA.basicOwnedEffect}</color>";
+
+                EnhanceCurrencyText.text = CurrencyManager.instance.GetCurrencyAmount("EnhanceStone");
+
+                Debug.Log("얼마냐 : " + enhanceEquipmentTempA.GetEnhanceStone());
+                RequiredCurrencyText.text = enhanceEquipmentTempA.GetEnhanceStone().ToString();
+
+                enhanceEquipment.GetComponent<ArmorInfo>().SetArmorInfo(enhanceEquipmentTempA.GetComponent<ArmorInfo>());
 
                 enhanceEquipment.SetUI();
                 break;
@@ -283,6 +306,8 @@ public class EquipmentUI : MonoBehaviour
         
     }
 
+
+    // 자동 장착 버튼 눌렀을 때 불리는 메서드
     public void OnClickAutoEquip()
     {
         Equipment[] highest = equipmentManager.GetHighestEquipments();
@@ -293,6 +318,8 @@ public class EquipmentUI : MonoBehaviour
 
             Player.OnEquip?.Invoke(equipment);
         }
+
+        SelectEquipment(selectEquipment);
     }
 
     // 선택한 장비 데이터 업데이트 (저장한다고 생각하면 편함)
@@ -303,16 +330,20 @@ public class EquipmentUI : MonoBehaviour
 
     public void SetEquipementTab(EquipmentType type)
     {
+        currentType = type;
+
         for (int i = 0; i < equipmentViews.Length; i++)
         {
             if (i == (int)type)
             {
+                equipmentTabs[i].interactable = false;
                 equipmentViews[i].SetActive(true);
                 Equipment equipment = equipmentViews[i].GetComponentInChildren<Equipment>();
                 SelectEquipment(equipment);
             }
             else
             {
+                equipmentTabs[i].interactable = true;
                 equipmentViews[i].SetActive(false);
             }
         }

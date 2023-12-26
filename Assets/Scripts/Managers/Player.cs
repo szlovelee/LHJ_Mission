@@ -12,11 +12,11 @@ public class Player : MonoBehaviour
     public static Player instance;
 
 
-    private LevelManager levelManager;
     private EquipmentManager equipmentManager;
 
     [SerializeField]
     private PlayerStatus status;
+    private PlayerLevel level;
 
     [SerializeField][Header("총 공격력")]
     private BigInteger currentAttack;
@@ -39,11 +39,12 @@ public class Player : MonoBehaviour
     {
         instance = this;
 
+        level = new PlayerLevel();
+        level.Initialize();
     }
 
     private void Start()
     {
-        levelManager = LevelManager.instance;
         equipmentManager = EquipmentManager.instance;
 
         LoadPlayerStatus();
@@ -62,12 +63,12 @@ public class Player : MonoBehaviour
         StatusUpgradeManager.OnCritDamageUpgrade += status.IncreaseBaseStat;
 
 #if UNITY_EDITOR
-        Debug.Assert(levelManager != null, "NULL : LEVELMANAGER");
+        Debug.Assert(level != null, "NULL : LEVELMANAGER");
 # endif
 
-        levelManager.OnAttackReward += status.IncreaseBaseStat;
-        levelManager.OnHPReward += status.IncreaseBaseStat;
-        levelManager.OnDefenseReward += status.IncreaseBaseStat;
+        level.OnAttackReward += status.IncreaseBaseStat;
+        level.OnHPReward += status.IncreaseBaseStat;
+        level.OnDefenseReward += status.IncreaseBaseStat;
 
         OnEquip += Equip;
         OnUnEquip += UnEquip;
@@ -134,6 +135,33 @@ public class Player : MonoBehaviour
         }
 
         SavePlayerStatus();
+    }
+
+    public void UpdatePlayerExp(int increase)
+    {
+        level.UpdateExp(increase);
+    }
+
+    public void AddLevelCallbacks(Action<int> levelChange, Action<int>expChange, Action<int> maxExpChange)
+    {
+        level.OnLevelChange += levelChange;
+        level.OnExpChange += expChange;
+        level.OnMaxExpChange += maxExpChange;
+    }
+
+    public int GetCurrentLevel()
+    {
+        return level.GetCurrentLevel();
+    }
+
+    public int GetCurrentExp()
+    {
+        return level.GetCurrentExp();
+    }
+
+    public int GetMaxExp()
+    {
+        return level.GetMaxExp();
     }
 
     // 장비 장착하는 메서드 
