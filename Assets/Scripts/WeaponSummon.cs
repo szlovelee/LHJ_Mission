@@ -24,7 +24,6 @@ public class WeaponSummon : Summon
 
             int level = GetRandomInt(EquipmentManager.MAX_LEVEL) + 1;
 
-            Debug.Log($"Summoned Level : {level}");
             string name = $"Weapon_{rarity}_{level}";
             Equipment weapon = EquipmentManager.GetEquipment(name);
 
