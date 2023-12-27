@@ -83,6 +83,13 @@ public class EquipmentUI : MonoBehaviour
         equipmentManager.OnEquipChange += SetAutoEquipBtnUI;
         equipmentManager.OnRankChange += SetAutoEquipBtnUI;
         equipmentManager.OnRankChange += SetComapositeAllBtnUI;
+
+        foreach(GameObject view in equipmentViews)
+        {
+            view.TryGetComponent<TabViewUI>(out TabViewUI ui);
+
+            ui.OnTabEnable += SetEquipementTab;
+        }
     }
 
     // 버튼 클릭 리스너 설정하는 메서드 
@@ -151,7 +158,9 @@ public class EquipmentUI : MonoBehaviour
     {
         equipment.SetQuantityUI();
         selectEquipment.GetComponent<Equipment>().SetUI();
+
         SetOnEquippedBtnUI(selectEquipment.OnEquipped);
+        SetCompositeBtnUI();
 
         SetselectEquipmentTextUI(equipment);
 
@@ -178,6 +187,18 @@ public class EquipmentUI : MonoBehaviour
         {
         equipBtn.gameObject.SetActive(true);
         unEquipBtn.gameObject.SetActive(false);
+        }
+    }
+
+    void SetCompositeBtnUI()
+    {
+        if (selectEquipment.quantity >= 4)
+        {
+            compositeBtn.interactable = true;
+        }
+        else
+        {
+            compositeBtn.interactable = false;
         }
     }
 
@@ -259,6 +280,7 @@ public class EquipmentUI : MonoBehaviour
         selectEquipment.SetQuantityUI();
 
         UpdateSelectEquipmentData();
+        SetCompositeBtnUI();
     }
 
     public void OnClickAllComposite()

@@ -10,8 +10,10 @@ public class EquipmentManager : MonoBehaviour
     public static EquipmentManager instance;
 
     #region Enum Array
-    Rarity[] rarities;
-    EquipmentType[] types;
+    public static Rarity[] rarities;
+    public static EquipmentType[] types;
+    public const int MAX_LEVEL = 4;
+    [SerializeField] Color[] colors;
     #endregion
 
 
@@ -31,11 +33,6 @@ public class EquipmentManager : MonoBehaviour
 
     public event Action OnEquipChange; //장착이 바뀌었을 때
     public event Action OnRankChange; //장비 속성 (효과, 등급)이 변경되었을 때
-
-
-    [SerializeField] Color[] colors;
-
-    int maxLevel = 4;
 
     private void Awake()
     {
@@ -101,7 +98,7 @@ public class EquipmentManager : MonoBehaviour
         foreach (Rarity rarity in rarities)
         {
             rarityIntValue = Convert.ToInt32(rarity);
-            for (int level = 1; level <= maxLevel; level++)
+            for (int level = 1; level <= MAX_LEVEL; level++)
             {
                 string name = $"{EquipmentType.Weapon}_{rarity}_{level}";
                 WeaponInfo weapon = weapons[weaponCount];
@@ -135,7 +132,7 @@ public class EquipmentManager : MonoBehaviour
         {
             if (rarity == Rarity.None) continue;
             rarityIntValue = Convert.ToInt32(rarity);
-            for (int level = 1; level <= maxLevel; level++)
+            for (int level = 1; level <= MAX_LEVEL; level++)
             {
                 WeaponInfo weapon = weapons[weaponCount];
 
@@ -168,7 +165,7 @@ public class EquipmentManager : MonoBehaviour
         foreach (Rarity rarity in rarities)
         {
             rarityIntValue = Convert.ToInt32(rarity);
-            for (int level = 1; level <= maxLevel; level++)
+            for (int level = 1; level <= MAX_LEVEL; level++)
             {
                 string name = $"{EquipmentType.Armor}_{rarity}_{level}";
                 ArmorInfo armor = armors[armorCount];
@@ -201,7 +198,7 @@ public class EquipmentManager : MonoBehaviour
         {
             if (rarity == Rarity.None) continue;
             rarityIntValue = Convert.ToInt32(rarity);
-            for (int level = 1; level <= maxLevel; level++)
+            for (int level = 1; level <= MAX_LEVEL; level++)
             {
                 ArmorInfo armor = armors[armorCount];
 
@@ -230,17 +227,17 @@ public class EquipmentManager : MonoBehaviour
     public int Composite(Equipment equipment, bool isSingleComposition)
     {
         if (equipment.quantity < 4) return -1;
-        if (equipment.rarity == rarities[rarities.Length - 1] && equipment.level == maxLevel) return 0;
+        if (equipment.rarity == rarities[rarities.Length - 1] && equipment.level == MAX_LEVEL) return 0;
 
         int compositeCount = equipment.quantity / 4;
         equipment.quantity %= 4;
         equipment.SetQuantityUI();
-        equipment.SaveEquipment(equipment.name);
+        equipment.SaveEquipmentQuantity();
 
         Equipment nextEquipment = GetNextEquipment(equipment.name);
         nextEquipment.quantity += compositeCount;
         nextEquipment.SetQuantityUI();
-        nextEquipment.SaveEquipment(nextEquipment.name);
+        nextEquipment.SaveEquipmentQuantity();
 
         if (isSingleComposition) SortEquipments();
 
@@ -508,6 +505,7 @@ public class EquipmentManager : MonoBehaviour
             case EquipmentType.Weapon:
                 foreach (WeaponInfo weapon in weapons)
                 {
+                    if (weapon.rarity == rarities[rarities.Length - 1] && weapon.level == MAX_LEVEL) continue;
                     if (weapon.quantity >= 4)
                     {
                         return true;
@@ -517,6 +515,7 @@ public class EquipmentManager : MonoBehaviour
             case EquipmentType.Armor:
                 foreach (ArmorInfo armor in armors)
                 {
+                    if (armor.rarity == rarities[rarities.Length - 1] && armor.level == MAX_LEVEL) continue;
                     if (armor.quantity >= 4)
                     {
                         return true;
@@ -525,6 +524,11 @@ public class EquipmentManager : MonoBehaviour
                 break;
         }
         return false;
+    }
+
+    public Color GetRarityColor(Rarity rarity)
+    {
+        return colors[(int)rarity];
     }
 
     private void SaveEquipped()
