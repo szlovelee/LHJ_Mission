@@ -94,7 +94,7 @@ public class SummonSlotUI : MonoBehaviour
     private void UpdateUI()
     {
         summonExp.text = $"{currentExp} / {maxExp}";
-        summonExpBar.value = (float)currentExp / maxExp;
+        summonExpBar.value = (maxExp == 0)? 0 : (float)currentExp / maxExp;
         summonLevel.text = $"LV.{currentLevel}";
     }
 

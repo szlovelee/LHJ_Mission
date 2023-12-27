@@ -10,10 +10,6 @@ public class WeaponSummon : Summon
     {
         equipmentManager = EquipmentManager.instance;
         type = SummonType.Weapon;
-
-        currentSummonExp = 0;
-        currentSummonLevel = 1;
-        maxSummonExp = 50;
     }
 
 
@@ -44,5 +40,4 @@ public class WeaponSummon : Summon
         resultUI.gameObject.SetActive(true);
         equipmentManager.SortEquipments();
     }
-
 }

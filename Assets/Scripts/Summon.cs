@@ -16,6 +16,7 @@ public abstract class Summon
 
     public virtual void Initialize()
     {
+        LoadSummonInfo();
         OnExpChange?.Invoke(currentSummonExp);
         OnLevelChange?.Invoke(currentSummonLevel);
         OnMaxExpChange?.Invoke(maxSummonExp);
@@ -31,8 +32,12 @@ public abstract class Summon
     public void UpdateSummonExp(int increase)
     {
         currentSummonExp += increase;
-        OnExpChange?.Invoke(currentSummonExp);
+
         UpdateSummonLevel();
+
+        OnExpChange?.Invoke(currentSummonExp);
+
+        SaveSummonInfo();
     }
 
     private void UpdateSummonLevel()
@@ -72,5 +77,19 @@ public abstract class Summon
     public int GetCurrentMaxExp()
     {
         return maxSummonExp;
+    }
+
+    private void SaveSummonInfo()
+    {
+        ES3.Save<int>($"{type}_currentSummonExp", currentSummonExp);
+        ES3.Save<int>($"{type}_currentSummonLevel", currentSummonLevel);
+        ES3.Save<int>($"{type}_maxSummonExp", maxSummonExp);
+    }
+
+    private void LoadSummonInfo()
+    {
+        currentSummonExp = (ES3.KeyExists($"{type}_currentSummonExp")) ? ES3.Load<int>($"{type}_currentSummonExp") : 0;
+        currentSummonLevel = (ES3.KeyExists($"{type}_currentSummonLevel")) ? ES3.Load<int>($"{type}_currentSummonLevel") : 1;
+        maxSummonExp = (ES3.KeyExists($"{type}_maxSummonExp")) ? ES3.Load<int>($"{type}_maxSummonExp") : 50;
     }
 }

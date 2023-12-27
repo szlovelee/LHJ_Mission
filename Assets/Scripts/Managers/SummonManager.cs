@@ -42,7 +42,7 @@ public class SummonManager : MonoBehaviour
         if (isInitialized) return;
 
         SetEnums();
-        LoadSummonDatas();
+        AddSummonDatas();
         currencyManager = CurrencyManager.instance;
 
         isInitialized = true;
@@ -59,7 +59,6 @@ public class SummonManager : MonoBehaviour
 
         summons[idx].SummonItem(quantity, summonResultPanel);
         summons[idx].UpdateSummonExp(quantity);
-        SaveSummonDatas(summons[idx]);
     }
 
     public void AddSummonCallbacks(SummonType type, Action<int> exp, Action<int> level, Action<int> maxExp)
@@ -67,24 +66,12 @@ public class SummonManager : MonoBehaviour
         summons[(int)type].AddEventCallbacks(UpdateExp: exp, UpdateLevel: level, UpdateMaxExp: maxExp);
     }
 
-    private void SaveSummonDatas(Summon summon)
+    private void AddSummonDatas()
     {
-        ES3.Save<Summon[]>("Summons", summons);
-    }
-
-    private void LoadSummonDatas()
-    {
-        if (ES3.KeyExists("Summons"))
+        summons = new Summon[summonTypes.Length];
+        for (int i = 0; i < summonTypes.Length; i++)
         {
-            summons = ES3.Load<Summon[]>("Summons");
-        }
-        else
-        {
-            summons = new Summon[summonTypes.Length];
-            for (int i = 0; i < summonTypes.Length; i++)
-            {
-                summons[i] = CreateSummonDatas(summonTypes[i]);
-            }
+            summons[i] = CreateSummonDatas(summonTypes[i]);
         }
     }
 

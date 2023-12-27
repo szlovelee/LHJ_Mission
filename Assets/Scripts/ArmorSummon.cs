@@ -9,11 +9,7 @@ public class ArmorSummon : Summon
     public ArmorSummon()
     {
         equipmentManager = EquipmentManager.instance;
-        type = SummonType.Weapon;
-
-        currentSummonExp = 0;
-        currentSummonLevel = 1;
-        maxSummonExp = 50;
+        type = SummonType.Armor;
     }
 
 
