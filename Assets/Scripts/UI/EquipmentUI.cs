@@ -151,7 +151,9 @@ public class EquipmentUI : MonoBehaviour
     {
         equipment.SetQuantityUI();
         selectEquipment.GetComponent<Equipment>().SetUI();
+
         SetOnEquippedBtnUI(selectEquipment.OnEquipped);
+        SetCompositeBtnUI();
 
         SetselectEquipmentTextUI(equipment);
 
@@ -178,6 +180,18 @@ public class EquipmentUI : MonoBehaviour
         {
         equipBtn.gameObject.SetActive(true);
         unEquipBtn.gameObject.SetActive(false);
+        }
+    }
+
+    void SetCompositeBtnUI()
+    {
+        if (selectEquipment.quantity >= 4)
+        {
+            compositeBtn.interactable = true;
+        }
+        else
+        {
+            compositeBtn.interactable = false;
         }
     }
 
@@ -259,6 +273,7 @@ public class EquipmentUI : MonoBehaviour
         selectEquipment.SetQuantityUI();
 
         UpdateSelectEquipmentData();
+        SetCompositeBtnUI();
     }
 
     public void OnClickAllComposite()

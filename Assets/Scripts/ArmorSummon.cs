@@ -30,10 +30,11 @@ public class ArmorSummon : Summon
 
             Debug.Log($"Summoned Level : {level}");
             string name = $"Armor_{rarity}_{level}";
-            Equipment weapon = EquipmentManager.GetEquipment(name);
+            Equipment armor = EquipmentManager.GetEquipment(name);
 
-            weapon.quantity++;
-            weapon.SaveEquipment();
+            armor.quantity++;
+            armor.SaveEquipmentQuantity();
+            armor.SetQuantityUI();
 
             Color color = equipmentManager.GetRarityColor(rarity);
 

@@ -33,7 +33,8 @@ public class WeaponSummon : Summon
             Equipment weapon = EquipmentManager.GetEquipment(name);
 
             weapon.quantity++;
-            weapon.SaveEquipment();
+            weapon.SaveEquipmentQuantity();
+            weapon.SetQuantityUI();
 
             Color color = equipmentManager.GetRarityColor(rarity);
 

@@ -114,6 +114,12 @@ public class Equipment : MonoBehaviour
         ES3.Save<string>("equippedEffect_" + name, equippedEffect.ToString());
         ES3.Save<string>("ownedEffect_" + name, ownedEffect.ToString());
     }
+
+    public void SaveEquipmentQuantity()
+    {
+        ES3.Save<int>("quantity_" + name, quantity);
+    }
+
     public void SaveEquipment(string equipmentID)
     {
         Debug.Log("장비 정보 저장 " + equipmentID);

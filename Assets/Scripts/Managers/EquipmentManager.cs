@@ -232,12 +232,12 @@ public class EquipmentManager : MonoBehaviour
         int compositeCount = equipment.quantity / 4;
         equipment.quantity %= 4;
         equipment.SetQuantityUI();
-        equipment.SaveEquipment(equipment.name);
+        equipment.SaveEquipmentQuantity();
 
         Equipment nextEquipment = GetNextEquipment(equipment.name);
         nextEquipment.quantity += compositeCount;
         nextEquipment.SetQuantityUI();
-        nextEquipment.SaveEquipment(nextEquipment.name);
+        nextEquipment.SaveEquipmentQuantity();
 
         if (isSingleComposition) SortEquipments();
 
@@ -505,6 +505,7 @@ public class EquipmentManager : MonoBehaviour
             case EquipmentType.Weapon:
                 foreach (WeaponInfo weapon in weapons)
                 {
+                    if (weapon.rarity == rarities[rarities.Length - 1] && weapon.level == MAX_LEVEL) continue;
                     if (weapon.quantity >= 4)
                     {
                         return true;
@@ -514,6 +515,7 @@ public class EquipmentManager : MonoBehaviour
             case EquipmentType.Armor:
                 foreach (ArmorInfo armor in armors)
                 {
+                    if (armor.rarity == rarities[rarities.Length - 1] && armor.level == MAX_LEVEL) continue;
                     if (armor.quantity >= 4)
                     {
                         return true;
