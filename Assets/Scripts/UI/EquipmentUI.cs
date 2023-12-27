@@ -83,6 +83,13 @@ public class EquipmentUI : MonoBehaviour
         equipmentManager.OnEquipChange += SetAutoEquipBtnUI;
         equipmentManager.OnRankChange += SetAutoEquipBtnUI;
         equipmentManager.OnRankChange += SetComapositeAllBtnUI;
+
+        foreach(GameObject view in equipmentViews)
+        {
+            view.TryGetComponent<TabViewUI>(out TabViewUI ui);
+
+            ui.OnTabEnable += SetEquipementTab;
+        }
     }
 
     // 버튼 클릭 리스너 설정하는 메서드 
