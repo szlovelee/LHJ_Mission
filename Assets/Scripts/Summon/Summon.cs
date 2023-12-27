@@ -105,6 +105,6 @@ public abstract class Summon
 
     private void GetProportionData()
     {
-        proportions = Resources.Load<SummonProportionSO>($"ScriptableObjects/{type}SummonProportionSO");
+        proportions = Resources.Load<SummonProportionSO>($"ScriptableObjects/SummonProportionDatas/{type}SummonProportionSO");
     }
 }

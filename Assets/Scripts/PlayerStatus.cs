@@ -31,6 +31,16 @@ public class PlayerStatus : BaseStatus
     BigInteger currentCritDamageValue = 0;
 
 
+    public void SetPlayerStatus()
+    {
+        IncreaseBaseStat(StatusType.ATK, 0);
+        IncreaseBaseStat(StatusType.HP, 0);
+        IncreaseBaseStat(StatusType.DEF, 0);
+        IncreaseBaseStat(StatusType.ATK_SPEED, 0);
+        IncreaseBaseStat(StatusType.CRIT_CH, 0);
+        IncreaseBaseStat(StatusType.CRIT_DMG, 0);
+    }
+
     // 스텟 증가 메서드
     public void IncreaseBaseStat(StatusType statusType, int addValue)
     {
