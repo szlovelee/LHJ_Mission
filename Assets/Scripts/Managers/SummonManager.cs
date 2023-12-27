@@ -4,11 +4,6 @@ using System.Collections.Generic;
 using Unity.Burst.Intrinsics;
 using UnityEngine;
 
-public enum SummonGrade
-{
-    D, C, B, A, S, SS
-}
-
 public enum SummonType
 {
     Weapon, Armor

@@ -1,8 +1,12 @@
 using System;
+using UnityEngine;
 
 public abstract class Summon
 {
     public SummonType type;
+
+    protected SummonProportionSO proportions;
+    protected Rarity[] rarities= new Rarity[1000];
 
     protected int currentSummonExp;
     protected int currentSummonLevel;
@@ -12,11 +16,14 @@ public abstract class Summon
     private event Action<int> OnLevelChange;
     private event Action<int> OnMaxExpChange;
 
-    private static Random random = new Random();
+    private static System.Random random = new System.Random();
 
     public virtual void Initialize()
     {
         LoadSummonInfo();
+        GetProportionData();
+        SetRarities();
+
         OnExpChange?.Invoke(currentSummonExp);
         OnLevelChange?.Invoke(currentSummonLevel);
         OnMaxExpChange?.Invoke(maxSummonExp);
@@ -48,6 +55,7 @@ public abstract class Summon
             currentSummonLevel++;
             OnLevelChange?.Invoke(currentSummonLevel);
             UpdateSummonMaxExp();
+            SetRarities();
         }
     }
 
@@ -56,6 +64,8 @@ public abstract class Summon
         maxSummonExp += maxSummonExp / 5;
         OnMaxExpChange?.Invoke(maxSummonExp);
     }
+
+    protected abstract void SetRarities();
 
     public void AddEventCallbacks(Action<int> UpdateExp, Action<int> UpdateLevel, Action<int> UpdateMaxExp)
     {
@@ -91,5 +101,10 @@ public abstract class Summon
         currentSummonExp = (ES3.KeyExists($"{type}_currentSummonExp")) ? ES3.Load<int>($"{type}_currentSummonExp") : 0;
         currentSummonLevel = (ES3.KeyExists($"{type}_currentSummonLevel")) ? ES3.Load<int>($"{type}_currentSummonLevel") : 1;
         maxSummonExp = (ES3.KeyExists($"{type}_maxSummonExp")) ? ES3.Load<int>($"{type}_maxSummonExp") : 50;
+    }
+
+    private void GetProportionData()
+    {
+        proportions = Resources.Load<SummonProportionSO>($"ScriptableObjects/{type}SummonProportionSO");
     }
 }

@@ -19,8 +19,8 @@ public class WeaponSummon : Summon
         
         for (int i = 0; i < quantity; i++)
         {
-            int rarityNum = GetRandomInt(EquipmentManager.rarities.Length);
-            Rarity rarity = EquipmentManager.rarities[rarityNum];
+            int rarityNum = GetRandomInt(rarities.Length);
+            Rarity rarity = rarities[rarityNum];
 
             int level = GetRandomInt(EquipmentManager.MAX_LEVEL) + 1;
 
@@ -39,5 +39,40 @@ public class WeaponSummon : Summon
 
         resultUI.gameObject.SetActive(true);
         equipmentManager.SortEquipments();
+    }
+
+    protected override void SetRarities()
+    {
+        int[] proportion = GetCurrentProportion();
+
+        int count = 0;
+        for (int i = 0; i <EquipmentManager.rarities.Length; i++)
+        {
+            int repetition = proportion[i];
+            for (int j = 0; j < repetition; j++)
+            {
+                rarities[count] = EquipmentManager.rarities[i];
+                count++;
+            }
+        }
+    }
+
+    private int[] GetCurrentProportion()
+    {
+        int[] proportion = proportions.GetProbabillitiesOfLevel(currentSummonLevel);
+
+#if UNITY_EDITOR
+        #region Assertion
+        Debug.Assert(proportion != null, "Proportion of current level does not exist.");
+
+        int sum = 0;
+        foreach(int num in proportion)
+        {
+            sum += num;
+        }
+        Debug.Assert(sum == 1000, "Elements of the proportion does not sum up 1000.");
+        #endregion
+#endif
+        return proportion;
     }
 }
