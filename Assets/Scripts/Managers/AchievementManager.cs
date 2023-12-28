@@ -12,7 +12,12 @@ public class AchievementManager : MonoBehaviour
 
     List<Achievement> achievementList;
 
+    List<Achievement> rewardLefts = new List<Achievement>();
+
     private bool isInitialized = false;
+
+    [SerializeField] private GameObject achievedMark;
+    private Dictionary<string, GameObject> achievementGuides;
 
     private void Awake()
     {
@@ -56,6 +61,26 @@ public class AchievementManager : MonoBehaviour
     public void GiveReward(RewardType type, int amount)
     {
         rewards[type].GiveReward(amount);
+    }
+
+    public void UpdateRewardLefts(Achievement achievement, bool rewardLeft)
+    {
+        if (rewardLeft)
+        {
+            rewardLefts.Add(achievement);
+        }
+        else
+        {
+            rewardLefts.Remove(achievement);
+        }
+
+        SetAlarmMark();
+    }
+
+    private void SetAlarmMark()
+    {
+        bool rewardLeftExists = (rewardLefts.Count > 0);
+        achievedMark.SetActive(rewardLeftExists);
     }
 
     private void CreateAchievements()
