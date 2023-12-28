@@ -68,6 +68,8 @@ public class Equipment : MonoBehaviour
         ownedEffect += basicOwnedEffect;
 
         enhancementLevel++;
+
+        AchievementManager.instance.UpdateAchievement(AchievementType.GeneralEquipmentEnhance, 1);
         // 강화효과 업데이트...
     }
 

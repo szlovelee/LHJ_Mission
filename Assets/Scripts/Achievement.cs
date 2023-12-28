@@ -57,6 +57,7 @@ public class Achievement
     private void GiveReward(int idx)
     {
         achievementManager.GiveReward(data.RewardType, data.RewardAmount[idx]);
+        Debug.Log($"Achievement: {data.Names[idx]}");
     }
 
     private void SaveAchievementData()

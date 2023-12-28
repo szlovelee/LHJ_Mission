@@ -9,7 +9,10 @@ public class CurrencyRewardSO : RewardBaseSO
 
     public override void GiveReward(int amount)
     {
+        string prev = CurrencyManager.instance.GetCurrencyAmount(currencyName);
         CurrencyManager.instance.AddCurrency(currencyName, amount);
+        Debug.Log($"Reward: {currencyName} {amount}");
+        Debug.Log($"{currencyName} : {prev} -> {CurrencyManager.instance.GetCurrencyAmount(currencyName)}");
     }
 
     public override void ShowReward()

@@ -76,7 +76,6 @@ public class WeaponInfo : Equipment
     // 장비 개수 보여주는 UI 업데이트 하는 메서드
     public override void SetQuantityUI()
     {
-        Debug.Log("Quantity : " + quantity);
         weaponQuantityBar.value = quantity;
         weaponQuantityText.text = $"{quantity}/4";
     }

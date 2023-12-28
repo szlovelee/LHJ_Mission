@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 08c509555f3df4abea4bec037959885d, type: 3}
   m_Name: GeneralEquipmentEnhanceAchievement
   m_EditorClassIdentifier: 
-  _type: 0
+  _type: 2
   _rewardType: 1
   _rewardAmount: 14000000
   _goalCount: 0a000000
