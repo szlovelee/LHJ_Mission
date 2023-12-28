@@ -11,13 +11,26 @@ public enum RewardType
     Dia, Status_Attack
 }
 
+public enum AchievementStatus
+{
+    UnAchieved, Achieved, RewardReceived
+}
+
 public class Achievement
 {
     private AchievementManager achievementManager;
-    private AchievementDataSO data;
 
+    private AchievementDataSO data;
     private int count;
-    private bool[] achieved;
+    private AchievementStatus[] status;
+
+    public AchievementDataSO Data => data;
+    public int Count => count;
+    public AchievementStatus[] Status => status;
+
+    public event Action<int, AchievementStatus> OnStatusChange;
+    public event Action<int> OnCountChange;
+
 
     public Achievement(AchievementDataSO data)
     {
@@ -34,11 +47,12 @@ public class Achievement
         if (currentStep == -1) return;
 
         count += num;
+        OnCountChange?.Invoke(count);
 
         if (count >= data.GoalCount[currentStep])
         {
-            achieved[currentStep] = true;
-            GiveReward(currentStep);
+            status[currentStep] = AchievementStatus.Achieved;
+            OnStatusChange?.Invoke(currentStep, status[currentStep]);
         }
 
         SaveAchievementData();
@@ -46,31 +60,36 @@ public class Achievement
 
     private int GetCurrentStep()
     {
-        for (int i = 0; i < achieved.Length; i++)
+        for (int i = 0; i < status.Length; i++)
         {
-            if (!achieved[i]) return i;
+            if (status[i] == AchievementStatus.UnAchieved) return i;
         }
 
         return -1;
     }
 
-    private void GiveReward(int idx)
+    public void GiveReward(int idx)
     {
         achievementManager.GiveReward(data.RewardType, data.RewardAmount[idx]);
         Debug.Log($"Achievement: {data.Names[idx]}");
+
+        status[idx] = AchievementStatus.RewardReceived;
+        OnStatusChange?.Invoke(idx, status[idx]);
+
+        SaveAchievementData();
     }
 
     private void SaveAchievementData()
     {
         ES3.Save<int>($"{data.Type}_Achievement_count", count);
-        ES3.Save<bool[]>($"{data.Type}_Achievement_achieved", achieved);
+        ES3.Save<AchievementStatus[]>($"{data.Type}_Achievement_status", status);
     }
 
     private void LoadAchievementData(AchievementType type)
     {
         count = (ES3.KeyExists($"{type}_Achievement_count")) ? ES3.Load<int>($"{type}_Achievement_count") : 0;
-        achieved = (ES3.KeyExists($"{type}_Achievement_achieved")) ?
-            ES3.Load<bool[]>($"{type}_Achievement_achieved") : new bool[data.GoalCount.Length];
+        status = (ES3.KeyExists($"{type}_Achievement_status")) ?
+            ES3.Load<AchievementStatus[]>($"{type}_Achievement_status") : new AchievementStatus[data.GoalCount.Length];
     }
 
     private void CheckDatas()
@@ -81,15 +100,15 @@ public class Achievement
         Debug.Assert(data.GoalCount.Length == data.Descriptions.Length, "The elements' lenghts of goalCount and desriptions does not match.");
 #endif
 
-        if (data.GoalCount.Length > achieved.Length)
+        if (data.GoalCount.Length > status.Length)
         {
 
-            Array.Resize(ref achieved, data.GoalCount.Length);
-            achieved[achieved.Length - 1] = false; 
+            Array.Resize(ref status, data.GoalCount.Length);
+            status[status.Length - 1] = AchievementStatus.UnAchieved; 
         }
-        else if (data.GoalCount.Length < achieved.Length)
+        else if (data.GoalCount.Length < status.Length)
         {
-            Array.Resize(ref achieved, data.GoalCount.Length);
+            Array.Resize(ref status, data.GoalCount.Length);
         }
     }
 }

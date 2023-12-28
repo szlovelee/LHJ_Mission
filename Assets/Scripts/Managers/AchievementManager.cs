@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,6 +9,10 @@ public class AchievementManager : MonoBehaviour
 
     private Dictionary<AchievementType, Achievement> achievements;
     private Dictionary<RewardType, RewardBaseSO> rewards;
+
+    List<Achievement> achievementList;
+
+    private bool isInitialized = false;
 
     private void Awake()
     {
@@ -21,13 +26,31 @@ public class AchievementManager : MonoBehaviour
 
     private void Initialize()
     {
+        if (isInitialized) return;
+
         CreateAchievements();
         LoadRewardDatas();
+
+        isInitialized = true;
     }
 
     public void UpdateAchievement(AchievementType type, int count)
     {
         achievements[type].AddAchievementCount(count);
+    }
+
+    public List<Achievement> GetAchievementList()
+    {
+        if (!isInitialized) Initialize();
+
+        return new List<Achievement>(achievementList);
+    }
+
+    public RewardBaseSO GetRewardBaseSO(RewardType type)
+    {
+        if (!isInitialized) Initialize();
+
+        return rewards[type];
     }
 
     public void GiveReward(RewardType type, int amount)
@@ -38,6 +61,7 @@ public class AchievementManager : MonoBehaviour
     private void CreateAchievements()
     {
         achievements = new Dictionary<AchievementType, Achievement>();
+        achievementList = new List<Achievement>();
 
         AchievementDataSO[] datas = Resources.LoadAll<AchievementDataSO>("ScriptableObjects/AchievementDatas");
 
@@ -46,6 +70,7 @@ public class AchievementManager : MonoBehaviour
             Achievement achievement = new Achievement(data);
 
             achievements[data.Type] = achievement;
+            achievementList.Add(achievement);
         }
     }
 

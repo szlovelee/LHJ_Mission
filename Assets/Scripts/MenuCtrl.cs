@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class BottomMenuCtrl : MonoBehaviour
+public class MenuCtrl : MonoBehaviour
 {
     [Header("버튼과 패널")]
     [SerializeField] private Button[] buttons;
