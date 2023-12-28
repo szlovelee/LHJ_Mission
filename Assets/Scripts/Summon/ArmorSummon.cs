@@ -5,11 +5,15 @@ using UnityEngine;
 public class ArmorSummon : Summon
 {
     private EquipmentManager equipmentManager;
+    private HashSet<Equipment> summonedItems;
 
     public ArmorSummon()
     {
         equipmentManager = EquipmentManager.instance;
+        summonedItems = new HashSet<Equipment>()
+;
         type = SummonType.Armor;
+        maxLevel = 10;
     }
 
 
@@ -28,8 +32,7 @@ public class ArmorSummon : Summon
             Equipment armor = EquipmentManager.GetEquipment(name);
 
             armor.quantity++;
-            armor.SaveEquipmentQuantity();
-            armor.SetQuantityUI();
+            summonedItems.Add(armor);
 
             Color color = equipmentManager.GetRarityColor(rarity);
 
@@ -38,6 +41,17 @@ public class ArmorSummon : Summon
 
         resultUI.gameObject.SetActive(true);
         equipmentManager.SortEquipments();
+
+        SaveItemQuantities();
+    }
+
+    private void SaveItemQuantities()
+    {
+        foreach (Equipment item in summonedItems)
+        {
+            item.SaveEquipmentQuantity();
+            item.SetQuantityUI();
+        }
     }
 
     protected override void SetRarities()

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class Summon
@@ -11,6 +12,7 @@ public abstract class Summon
     protected int currentSummonExp;
     protected int currentSummonLevel;
     protected int maxSummonExp;
+    protected int maxLevel;
 
     private event Action<int> OnExpChange;
     private event Action<int> OnLevelChange;
@@ -51,11 +53,18 @@ public abstract class Summon
     {
         if (currentSummonExp >= maxSummonExp)
         {
-            currentSummonExp -= maxSummonExp;
-            currentSummonLevel++;
-            OnLevelChange?.Invoke(currentSummonLevel);
-            UpdateSummonMaxExp();
-            SetRarities();
+            if (currentSummonLevel == maxLevel)
+            {
+                currentSummonExp = maxSummonExp;
+            }
+            else
+            {
+                currentSummonExp -= maxSummonExp;
+                currentSummonLevel++;
+                OnLevelChange?.Invoke(currentSummonLevel);
+                UpdateSummonMaxExp();
+                SetRarities();
+            }
         }
     }
 
