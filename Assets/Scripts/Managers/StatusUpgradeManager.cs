@@ -388,6 +388,8 @@ public class StatusUpgradeManager : MonoBehaviour
         else stat.StatusUpdate();
 
         stat.SetUpgradeUI();
+
+        AchievementManager.instance.UpdateAchievement(AchievementType.GeneralStatUpgrade, 1);
     }
 
     // 버튼이 눌린 동안 호출되는 메서드

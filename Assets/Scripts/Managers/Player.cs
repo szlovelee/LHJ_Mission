@@ -137,6 +137,12 @@ public class Player : MonoBehaviour
         SavePlayerStatus();
     }
 
+    public void IncreaseCurrentStatus(StatusType statusType, int increase)
+    {
+        status.IncreaseBaseStat(statusType, increase);
+        SavePlayerStatus();
+    }
+
     public void UpdatePlayerExp(int increase)
     {
         level.UpdateExp(increase);
@@ -233,6 +239,7 @@ public class Player : MonoBehaviour
         if (ES3.KeyExists("PlayerStatus"))
         {
             status = ES3.Load<PlayerStatus>("PlayerStatus");
+            status.SetPlayerStatus();
         }
     }
 }

@@ -21,6 +21,7 @@ public class SummonManager : MonoBehaviour
     private Summon[] summons;
 
     private CurrencyManager currencyManager;
+    private AchievementManager achievementManager;
 
     private void Awake()
     {
@@ -38,7 +39,9 @@ public class SummonManager : MonoBehaviour
 
         SetEnums();
         AddSummonDatas();
+
         currencyManager = CurrencyManager.instance;
+        achievementManager = AchievementManager.instance;
 
         isInitialized = true;
     }
@@ -54,6 +57,8 @@ public class SummonManager : MonoBehaviour
 
         summons[idx].SummonItem(quantity, summonResultPanel);
         summons[idx].UpdateSummonExp(quantity);
+
+        achievementManager.UpdateAchievement(AchievementType.GeneralSummon, quantity);
     }
 
     public void AddSummonCallbacks(SummonType type, Action<int> exp, Action<int> level, Action<int> maxExp)

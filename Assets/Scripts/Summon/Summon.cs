@@ -100,11 +100,11 @@ public abstract class Summon
     {
         currentSummonExp = (ES3.KeyExists($"{type}_currentSummonExp")) ? ES3.Load<int>($"{type}_currentSummonExp") : 0;
         currentSummonLevel = (ES3.KeyExists($"{type}_currentSummonLevel")) ? ES3.Load<int>($"{type}_currentSummonLevel") : 1;
-        maxSummonExp = (ES3.KeyExists($"{type}_maxSummonExp")) ? ES3.Load<int>($"{type}_maxSummonExp") : 50;
+        maxSummonExp = (ES3.KeyExists($"{type}_maxSummonExp")) ? ES3.Load<int>($"{type}_maxSummonExp") : 100;
     }
 
     private void GetProportionData()
     {
-        proportions = Resources.Load<SummonProportionSO>($"ScriptableObjects/{type}SummonProportionSO");
+        proportions = Resources.Load<SummonProportionSO>($"ScriptableObjects/SummonProportionDatas/{type}SummonProportionSO");
     }
 }
