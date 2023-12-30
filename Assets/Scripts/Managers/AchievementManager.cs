@@ -12,7 +12,7 @@ public class AchievementManager : MonoBehaviour
 
     List<Achievement> achievementList;
 
-    List<Achievement> rewardLefts = new List<Achievement>();
+    HashSet<Achievement> rewardLefts = new HashSet<Achievement>();
 
     private bool isInitialized = false;
 
@@ -35,6 +35,7 @@ public class AchievementManager : MonoBehaviour
 
         CreateAchievements();
         LoadRewardDatas();
+        SetAlarmMark();
 
         isInitialized = true;
     }
@@ -71,6 +72,7 @@ public class AchievementManager : MonoBehaviour
         }
         else
         {
+            if (!rewardLefts.Contains(achievement)) return;
             rewardLefts.Remove(achievement);
         }
 

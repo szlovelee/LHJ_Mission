@@ -11,11 +11,14 @@ public class AchievementUI : MonoBehaviour
     private AchievementManager achievementManager;
     private AchievementSlotUI slotPrefab;
 
+    private bool isInitialized = false;
+
     private List<AchievementSlotUI> slots = new List<AchievementSlotUI>();
 
     private void Start()
     {
         Initialize();
+        this.gameObject.SetActive(false);
     }
 
     private void OnEnable()
@@ -24,14 +27,17 @@ public class AchievementUI : MonoBehaviour
     }
 
 
-    private void Initialize()
+    public void Initialize()
     {
+        if (isInitialized) return;
+        
         achievementManager = AchievementManager.instance;
         slotPrefab = Resources.Load<AchievementSlotUI>("Prefab/AchievementSlot");
         closeBtn.onClick.AddListener(CloseAchievementPanel);
         InitializeSlots();
 
-        this.gameObject.SetActive(false);
+
+        isInitialized = true;
     }
 
     private void InitializeSlots()
