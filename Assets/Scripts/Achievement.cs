@@ -55,7 +55,9 @@ public class Achievement
         {
             status[currentStep] = AchievementStatus.Achieved;
             OnStatusChange?.Invoke(currentStep, status[currentStep]);
+
             UpdateRewardLefts(currentStep, true);
+            UpdateGuide(false);
         }
 
         SaveAchievementData();
@@ -98,6 +100,11 @@ public class Achievement
             if (rewardLefts.Count == 0) achievementManager.UpdateRewardLefts(this, false);
         }
 
+    }
+
+    public void UpdateGuide(bool isActivating)
+    {
+        achievementManager.UpdateGuide(data.Type, isActivating);
     }
 
     private void SaveAchievementData()

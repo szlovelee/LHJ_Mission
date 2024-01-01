@@ -26,30 +26,34 @@ public class AchievementSlotUI : MonoBehaviour, IComparable
 
     private string rewardType;
     private int rewardAmount;
-    private RewardBaseSO reward;
-    private Action<int> GiveRewardAction;
 
-    public void InitializeUI(int index, string name, string description, int currentCount, int goalCount, AchievementStatus status)
+    private Button guideButton;
+    private bool isGuideRequested;
+    public event Action OnGuideRequested;
+
+    public void InitializeUI(Achievement achievement, int index)
     {
         this.index = index;
-        this.name.text = name;
-        this.description.text = description;
+        this.name.text = achievement.Data.Names[index];
+        this.description.text = achievement.Data.Descriptions[index];
 
-        this.currentCount = currentCount;
-        this.goalCount = goalCount;
+        this.currentCount = achievement.Count;
+        this.goalCount = achievement.Data.GoalCount[index];
         count.text = $"{currentCount} / {goalCount}";
 
+        status = achievement.Status[index];
+
         TryGetComponent<Image>(out background);
+        TryGetComponent<Button>(out guideButton);
 
         UpdateStatusUI(index, status);
     }
 
-    public void SetRewardInfo(RewardType rewardType, int rewardAmount, RewardBaseSO reward, Action<int> GiveRewardAction)
+    public void SetRewardInfo(Achievement achievement)
     {
-        this.rewardType = rewardType.ToString();
-        this.rewardAmount = rewardAmount;
-        this.reward = reward;
-        this.GiveRewardAction = GiveRewardAction;
+        this.rewardType = achievement.Data.RewardType.ToString();
+        this.rewardAmount = achievement.Data.RewardAmount[index];
+
         rewardInfo.text = $"{rewardType} {rewardAmount}";
     }
 
@@ -58,7 +62,14 @@ public class AchievementSlotUI : MonoBehaviour, IComparable
         achievement.OnStatusChange += UpdateStatusUI;
         achievement.OnCountChange += UpdateCount;
 
-        rewardBtn.onClick.AddListener(GiveReward);
+        rewardBtn.onClick.AddListener(() => achievement.GiveReward(index));
+        guideButton.onClick.AddListener(() =>
+        {
+            if (isGuideRequested) return;
+            achievement.UpdateGuide(true);
+            isGuideRequested = true;
+        });
+        guideButton.onClick.AddListener(() => OnGuideRequested?.Invoke());
     }
 
     private void UpdateCount(int count)
@@ -82,23 +93,29 @@ public class AchievementSlotUI : MonoBehaviour, IComparable
         switch (status)
         {
             case AchievementStatus.Achieved:
+
                 targetObject = rewardBtn.gameObject;
+
+                isGuideRequested = false;
+                guideButton.interactable = false;
+
                 break;
+
             case AchievementStatus.RewardReceived:
+
                 targetObject = received;
+
+                guideButton.interactable = false;
                 background.color = completeColor;
+
                 break;
+
             default:
                 targetObject = unachieved;
                 break;
         }
 
         targetObject.SetActive(true);
-    }
-
-    private void GiveReward()
-    {
-        GiveRewardAction?.Invoke(index);
     }
 
     public int CompareTo(object other)

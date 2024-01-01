@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,12 +10,14 @@ public class AchievementManager : MonoBehaviour
 
     List<Achievement> achievementList;
 
-    HashSet<Achievement> rewardLefts = new HashSet<Achievement>();
-
     private bool isInitialized = false;
 
     [SerializeField] private GameObject achievedMark;
+    [SerializeField] private List<GameObject> guideObjects;
     private Dictionary<string, GameObject> achievementGuides;
+
+    HashSet<Achievement> rewardLefts = new HashSet<Achievement>();
+    List<AchievementType> requestedGuideTypes = new List<AchievementType>();
 
     private void Awake()
     {
@@ -33,6 +33,7 @@ public class AchievementManager : MonoBehaviour
     {
         if (isInitialized) return;
 
+        InitGuideDictionary();
         CreateAchievements();
         LoadRewardDatas();
         SetAlarmMark();
@@ -79,10 +80,38 @@ public class AchievementManager : MonoBehaviour
         SetAlarmMark();
     }
 
+    public void UpdateGuide(AchievementType type, bool isActivating)
+    {
+        if (isActivating)
+        {
+            requestedGuideTypes.Add(type);
+            achievementGuides[$"{type}Guide"].SetActive(true);
+        }
+        else
+        {
+            if (!requestedGuideTypes.Contains(type)) return;
+
+            requestedGuideTypes.Remove(type);
+
+            if (!requestedGuideTypes.Contains(type)) achievementGuides[$"{type}Guide"].SetActive(false);
+        }
+    }
+
     private void SetAlarmMark()
     {
         bool rewardLeftExists = (rewardLefts.Count > 0);
         achievedMark.SetActive(rewardLeftExists);
+    }
+
+    private void InitGuideDictionary()
+    {
+        achievementGuides = new Dictionary<string, GameObject>();
+
+        foreach (GameObject obj in guideObjects)
+        {
+            achievementGuides[$"{obj.name}"] = obj;
+            obj.SetActive(false);
+        }
     }
 
     private void CreateAchievements()

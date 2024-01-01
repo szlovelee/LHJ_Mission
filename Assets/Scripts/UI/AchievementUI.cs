@@ -58,19 +58,10 @@ public class AchievementUI : MonoBehaviour
         {
             AchievementSlotUI slot = Instantiate(slotPrefab, slotView);
 
-            slot.InitializeUI(
-                index: i,
-                name: achievement.Data.Names[i],
-                description: achievement.Data.Descriptions[i],
-                currentCount: achievement.Count,
-                goalCount: achievement.Data.GoalCount[i],
-                status: achievement.Status[i]);
-            slot.SetRewardInfo(
-                rewardType: achievement.Data.RewardType,
-                rewardAmount: achievement.Data.RewardAmount[i],
-                reward: achievementManager.GetRewardBaseSO(achievement.Data.RewardType),
-                GiveRewardAction: achievement.GiveReward);
+            slot.InitializeUI(achievement, i);
+            slot.SetRewardInfo(achievement);
             slot.AddEventCallbacks(achievement);
+            slot.OnGuideRequested += CloseAchievementPanel;
 
             slots.Add(slot);
         }
