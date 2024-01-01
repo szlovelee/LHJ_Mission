@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public enum AchievementType
@@ -31,6 +32,7 @@ public class Achievement
     public event Action<int, AchievementStatus> OnStatusChange;
     public event Action<int> OnCountChange;
 
+    private HashSet<int> rewardLefts = new HashSet<int>();
 
     public Achievement(AchievementDataSO data)
     {
@@ -53,6 +55,9 @@ public class Achievement
         {
             status[currentStep] = AchievementStatus.Achieved;
             OnStatusChange?.Invoke(currentStep, status[currentStep]);
+
+            UpdateRewardLefts(currentStep, true);
+            UpdateGuide(false);
         }
 
         SaveAchievementData();
@@ -75,8 +80,31 @@ public class Achievement
 
         status[idx] = AchievementStatus.RewardReceived;
         OnStatusChange?.Invoke(idx, status[idx]);
+        UpdateRewardLefts(idx, false);
 
         SaveAchievementData();
+    }
+
+    private void UpdateRewardLefts(int idx, bool rewardLeft)
+    {
+        if (rewardLeft)
+        {
+            rewardLefts.Add(idx);
+            if (rewardLefts.Count == 1) achievementManager.UpdateRewardLefts(this, true);
+        }
+        else
+        {
+            if (!rewardLefts.Contains(idx)) return;
+
+            rewardLefts.Remove(idx);
+            if (rewardLefts.Count == 0) achievementManager.UpdateRewardLefts(this, false);
+        }
+
+    }
+
+    public void UpdateGuide(bool isActivating)
+    {
+        achievementManager.UpdateGuide(data.Type, isActivating);
     }
 
     private void SaveAchievementData()
@@ -90,6 +118,14 @@ public class Achievement
         count = (ES3.KeyExists($"{type}_Achievement_count")) ? ES3.Load<int>($"{type}_Achievement_count") : 0;
         status = (ES3.KeyExists($"{type}_Achievement_status")) ?
             ES3.Load<AchievementStatus[]>($"{type}_Achievement_status") : new AchievementStatus[data.GoalCount.Length];
+
+        for (int i = 0; i < status.Length; i++)
+        {
+            if (status[i] == AchievementStatus.Achieved)
+            {
+                UpdateRewardLefts(i, true);
+            }
+        }
     }
 
     private void CheckDatas()

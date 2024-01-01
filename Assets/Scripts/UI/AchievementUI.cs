@@ -11,11 +11,14 @@ public class AchievementUI : MonoBehaviour
     private AchievementManager achievementManager;
     private AchievementSlotUI slotPrefab;
 
+    private bool isInitialized = false;
+
     private List<AchievementSlotUI> slots = new List<AchievementSlotUI>();
 
     private void Start()
     {
         Initialize();
+        this.gameObject.SetActive(false);
     }
 
     private void OnEnable()
@@ -24,14 +27,17 @@ public class AchievementUI : MonoBehaviour
     }
 
 
-    private void Initialize()
+    public void Initialize()
     {
+        if (isInitialized) return;
+        
         achievementManager = AchievementManager.instance;
         slotPrefab = Resources.Load<AchievementSlotUI>("Prefab/AchievementSlot");
         closeBtn.onClick.AddListener(CloseAchievementPanel);
         InitializeSlots();
 
-        this.gameObject.SetActive(false);
+
+        isInitialized = true;
     }
 
     private void InitializeSlots()
@@ -52,19 +58,10 @@ public class AchievementUI : MonoBehaviour
         {
             AchievementSlotUI slot = Instantiate(slotPrefab, slotView);
 
-            slot.InitializeUI(
-                index: i,
-                name: achievement.Data.Names[i],
-                description: achievement.Data.Descriptions[i],
-                currentCount: achievement.Count,
-                goalCount: achievement.Data.GoalCount[i],
-                status: achievement.Status[i]);
-            slot.SetRewardInfo(
-                rewardType: achievement.Data.RewardType,
-                rewardAmount: achievement.Data.RewardAmount[i],
-                reward: achievementManager.GetRewardBaseSO(achievement.Data.RewardType),
-                GiveRewardAction: achievement.GiveReward);
+            slot.InitializeUI(achievement, i);
+            slot.SetRewardInfo(achievement);
             slot.AddEventCallbacks(achievement);
+            slot.OnGuideRequested += CloseAchievementPanel;
 
             slots.Add(slot);
         }
