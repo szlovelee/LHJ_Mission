@@ -9,6 +9,7 @@ using TMPro;
 public class CurrencyManager : MonoBehaviour
 {
     public static CurrencyManager instance;
+    private CurrencyDataController dataController;
 
     // 이벤트 : 통화의 양이 변경될 때 발생
     public event Action<string, string> OnCurrencyChanged;
@@ -25,8 +26,9 @@ public class CurrencyManager : MonoBehaviour
     // 재화 매니저 초기화 메서드
     public void InitCurrencyManager()
     {
+        dataController = DataManager.instance.GetDataController<CurrencyDataController>("CurrencyDataController");
         OnCurrencyChanged += UpdateCurrencyUI;
-        LoadCurrencies();
+        dataController.LoadCurrencies(currencies, OnCurrencyChanged);
     }
 
     // 특정 통화를 증가시키는 메서드
@@ -37,7 +39,7 @@ public class CurrencyManager : MonoBehaviour
         {
             currency.Add(value);
             OnCurrencyChanged?.Invoke(currencyName, currency.amount); // 이벤트 발생
-            SaveCurrencies();
+            dataController.SaveCurrencies(currencies);
         }
     }
 
@@ -50,7 +52,7 @@ public class CurrencyManager : MonoBehaviour
         {
             // 통화의 양을 감소시키, 결과에 따라 이벤트 발생
             bool result = currency.Subtract(value);
-            SaveCurrencies();
+            dataController.SaveCurrencies(currencies);
             if (result)
             {
                 OnCurrencyChanged?.Invoke(currencyName, currency.amount);
@@ -65,27 +67,6 @@ public class CurrencyManager : MonoBehaviour
     {
         Currency currency = currencies.Find(c => c.currencyName == currencyName);
         return currency?.amount ?? "0";
-    }
-
-    // 모든 통화를 로컬에 저장시키는 메서드
-    public void SaveCurrencies()
-    {
-        ES3.Save<List<Currency>>("currencies", currencies);
-    }
-
-    // 로컬에 저장되어있는 모든 통화를 불러오는 메서드
-    public bool LoadCurrencies()
-    {
-        if (ES3.KeyExists("currencies"))
-        {
-            currencies = ES3.Load<List<Currency>>("currencies");
-            foreach (Currency currency in currencies)
-            {
-                OnCurrencyChanged?.Invoke(currency.currencyName, currency.amount); // 로딩 후 이벤트 발생
-            }
-        }
-        else return false;
-        return true;
     }
 
     // 통화의 UI를 업데이트 시키는 메서드
